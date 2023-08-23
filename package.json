@@ -1,0 +1,25 @@
+{
+  "name": "node-recipes",
+  "version": "0.1.0",
+  "description": "API for recipe saving",
+  "main": "dist/app.js",
+  "scripts": {
+    "test": "vitest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Simbayyy/node-recipe.git"
+  },
+  "author": "Simon Baillet",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Simbayyy/node-recipe/issues"
+  },
+  "homepage": "https://github.com/Simbayyy/node-recipe#readme",
+  "dependencies": {
+    "typescript": "^5.2.2"
+  },
+  "devDependencies": {
+    "vitest": "^0.34.3"
+  }
+}
