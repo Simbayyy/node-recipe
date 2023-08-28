@@ -6,7 +6,8 @@
   "scripts": {
     "start": "tsc && node dist/app.js",
     "test": "vitest",
-    "prod": "export NODE_ENV='production' && npm start"
+    "prod": "export NODE_ENV='production' && npm start",
+    "ssl": "npm config set strict-ssl=false"
   },
   "repository": {
     "type": "git",
