@@ -22,12 +22,18 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const http = __importStar(require("http"));
+exports.app = exports.logger = void 0;
 const winston = __importStar(require("winston"));
 const dotenv = __importStar(require("dotenv"));
+const routes = __importStar(require("./routes"));
+const hbs_1 = __importDefault(require("hbs"));
+const express_1 = __importDefault(require("express"));
 dotenv.config({ path: process.env.NODE_ENV == 'production' ? '.env' : '.env.development.local' });
-const logger = winston.createLogger({
+exports.logger = winston.createLogger({
     level: 'info',
     format: winston.format.json(),
     defaultMeta: { service: 'user-service' },
@@ -41,27 +47,20 @@ const logger = winston.createLogger({
     ],
 });
 if (process.env.NODE_ENV !== 'production') {
-    logger.add(new winston.transports.Console({
+    exports.logger.add(new winston.transports.Console({
         format: winston.format.simple(),
     }));
 }
-const hostname = 'recipes.sbaillet.com';
+exports.app = (0, express_1.default)();
 const port = 3000;
-const server = http.createServer((_, res) => {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'text/plain');
-    res.end('Hello World');
-    logger.log({
+exports.app.use('/', routes.home);
+exports.app.set('view engine', hbs_1.default);
+exports.app.listen(port, () => {
+    exports.logger.log({
         level: 'info',
-        message: 'Hello distributed log files!'
+        message: `Server running on port ${port}`
     });
-});
-server.listen(port, hostname, () => {
-    logger.log({
-        level: 'info',
-        message: `Server running at http://${hostname}:${port}/`
-    });
-    logger.log({
+    exports.logger.log({
         level: 'info',
         message: `Environment variables used are from ${process.env.TEST_VALUE}`
     });

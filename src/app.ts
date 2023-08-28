@@ -1,10 +1,13 @@
 import * as http from "http"
 import * as winston from "winston"
 import * as dotenv from 'dotenv'
+import * as routes from './routes'
+import hbs from 'hbs'
+import express from 'express'
 
 dotenv.config({path: process.env.NODE_ENV == 'production' ? '.env' : '.env.development.local'})
 
-const logger = winston.createLogger({
+export const logger = winston.createLogger({
   level: 'info',
   format: winston.format.json(),
   defaultMeta: { service: 'user-service' },
@@ -24,23 +27,16 @@ if (process.env.NODE_ENV !== 'production') {
   }));
 }
 
-const hostname = 'recipes.sbaillet.com';
+export const app = express()
 const port = 3000;
 
-const server = http.createServer((_,res) => {
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/html');
-  res.end('<h1>Hello World</h1>');
-  logger.log({
-    level: 'info',
-    message: 'Hello distributed log files!'
-  });
-});
+app.use('/', routes.home)
+app.set('view engine', hbs)
 
-server.listen(port, hostname, () => {
+app.listen(port, () => {
   logger.log({
     level: 'info',
-    message: `Server running at http://${hostname}:${port}/`
+    message: `Server running on port ${port}`
   });
   logger.log({
     level: 'info',
