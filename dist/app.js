@@ -25,6 +25,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const http = __importStar(require("http"));
 const winston = __importStar(require("winston"));
+const dotenv = __importStar(require("dotenv"));
+dotenv.config({ path: process.env.NODE_ENV == 'production' ? '.env' : '.env.development.local' });
 const logger = winston.createLogger({
     level: 'info',
     format: winston.format.json(),
@@ -56,4 +58,5 @@ const server = http.createServer((_, res) => {
 });
 server.listen(port, hostname, () => {
     console.log(`Server running at http://${hostname}:${port}/`);
+    console.log(`Environment variables used are from ${process.env.TEST_VALUE}`);
 });

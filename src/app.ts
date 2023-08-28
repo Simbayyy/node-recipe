@@ -1,5 +1,8 @@
 import * as http from "http"
 import * as winston from "winston"
+import * as dotenv from 'dotenv'
+
+dotenv.config({path: process.env.NODE_ENV == 'production' ? '.env' : '.env.development.local'})
 
 const logger = winston.createLogger({
     level: 'info',
@@ -35,5 +38,12 @@ const server = http.createServer((_,res) => {
 });
 
 server.listen(port, hostname, () => {
-    console.log(`Server running at http://${hostname}:${port}/`);
+    logger.log({
+        level: 'info',
+        message: `Server running at http://${hostname}:${port}/`
+    });
+    logger.log({
+        level: 'info',
+        message: `Environment variables used are from ${process.env.TEST_VALUE}`
+    });
 })
