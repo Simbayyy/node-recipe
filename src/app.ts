@@ -30,7 +30,8 @@ if (process.env.NODE_ENV !== 'production') {
 export const app = express()
 const port = 3000;
 
-app.use('/', routes.home)
+app.use(express.json())
+app.use('/', routes.router)
 app.set('view engine', hbs)
 
 app.listen(port, () => {

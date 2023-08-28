@@ -22,13 +22,31 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.router = void 0;
-const express_1 = __importDefault(require("express"));
-const views = __importStar(require("./views"));
-exports.router = express_1.default.Router();
-exports.router.get('/', views.home);
-exports.router.post('/newrecipe', views.newRecipe);
+exports.newRecipe = exports.home = void 0;
+const app = __importStar(require("./app"));
+function home(_, res) {
+    res.render('home.hbs');
+    app.logger.log({
+        level: 'info',
+        message: `Home loaded`
+    });
+}
+exports.home = home;
+function newRecipe(req, res) {
+    try {
+        const recipe = req.body;
+        app.logger.log({
+            level: 'info',
+            message: `New recipe ${recipe.name} detected from ${recipe.url}!`
+        });
+    }
+    catch (_a) {
+        app.logger.log({
+            level: 'error',
+            message: `New recipe is not corresponding to the Recipe type, but rather ${req.body}`
+        });
+        throw TypeError("Request body not of the Recipe type");
+    }
+}
+exports.newRecipe = newRecipe;

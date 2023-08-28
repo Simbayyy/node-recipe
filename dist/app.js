@@ -53,7 +53,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 exports.app = (0, express_1.default)();
 const port = 3000;
-exports.app.use('/', routes.home);
+exports.app.use('/', routes.router);
 exports.app.set('view engine', hbs_1.default);
 exports.app.listen(port, () => {
     exports.logger.log({
