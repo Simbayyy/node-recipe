@@ -45,7 +45,7 @@ if (process.env.NODE_ENV !== 'production') {
         format: winston.format.simple(),
     }));
 }
-const hostname = '127.0.0.1';
+const hostname = 'recipes.sbaillet.com';
 const port = 3000;
 const server = http.createServer((_, res) => {
     res.statusCode = 200;
@@ -57,6 +57,12 @@ const server = http.createServer((_, res) => {
     });
 });
 server.listen(port, hostname, () => {
-    console.log(`Server running at http://${hostname}:${port}/`);
-    console.log(`Environment variables used are from ${process.env.TEST_VALUE}`);
+    logger.log({
+        level: 'info',
+        message: `Server running at http://${hostname}:${port}/`
+    });
+    logger.log({
+        level: 'info',
+        message: `Environment variables used are from ${process.env.TEST_VALUE}`
+    });
 });
