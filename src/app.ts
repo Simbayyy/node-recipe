@@ -1,12 +1,37 @@
 import * as http from "http"
+import * as winston from "winston"
 
-const hostname = 'recipes.sbaillet.com';
+const logger = winston.createLogger({
+    level: 'info',
+    format: winston.format.json(),
+    defaultMeta: { service: 'user-service' },
+    transports: [
+      //
+      // - Write all logs with importance level of `error` or less to `error.log`
+      // - Write all logs with importance level of `info` or less to `combined.log`
+      //
+      new winston.transports.File({ filename: 'error.log', level: 'error' }),
+      new winston.transports.File({ filename: 'combined.log' }),
+    ],
+  });
+
+if (process.env.NODE_ENV !== 'production') {
+logger.add(new winston.transports.Console({
+    format: winston.format.simple(),
+}));
+}
+
+const hostname = '127.0.0.1';
 const port = 3000;
 
 const server = http.createServer((_,res) => {
     res.statusCode = 200;
     res.setHeader('Content-Type', 'text/plain');
     res.end('Hello World');
+    logger.log({
+        level: 'info',
+        message: 'Hello distributed log files!'
+      });
 });
 
 server.listen(port, hostname, () => {
