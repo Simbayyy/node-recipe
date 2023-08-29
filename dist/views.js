@@ -25,6 +25,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.newRecipe = exports.home = void 0;
 const app = __importStar(require("./app"));
+const types_1 = require("./types");
 function home(_, res) {
     res.render('home.hbs');
     app.logger.log({
@@ -36,17 +37,27 @@ exports.home = home;
 function newRecipe(req, res) {
     try {
         const recipe = req.body;
-        app.logger.log({
-            level: 'info',
-            message: `New recipe ${recipe.name} detected from ${recipe.url}!`
-        });
+        if ((0, types_1.isRecipe)(recipe)) {
+            app.logger.log({
+                level: 'info',
+                message: `New recipe ${recipe.title} detected from ${recipe.url}!\n Recipe JSON is ${JSON.stringify(recipe)}`
+            });
+            res.status(200).json(recipe);
+        }
+        else {
+            app.logger.log({
+                level: 'error',
+                message: `New recipe is not corresponding to the Recipe type, but rather ${req}`
+            });
+            throw TypeError("Request body not of the Recipe type");
+        }
     }
     catch (_a) {
         app.logger.log({
             level: 'error',
-            message: `New recipe is not corresponding to the Recipe type, but rather ${req.body}`
+            message: `Could not read request body in newRecipe`
         });
-        throw TypeError("Request body not of the Recipe type");
+        throw TypeError("Request body not readable");
     }
 }
 exports.newRecipe = newRecipe;
