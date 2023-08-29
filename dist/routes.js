@@ -26,15 +26,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.home = void 0;
+exports.router = void 0;
 const express_1 = __importDefault(require("express"));
-const app = __importStar(require("./app"));
-const router = express_1.default.Router();
-function home(_, res) {
-    res.render('home.hbs');
-    app.logger.log({
-        level: 'info',
-        message: `Home loaded`
-    });
-}
-exports.home = home;
+const views = __importStar(require("./views"));
+exports.router = express_1.default.Router();
+exports.router.get('/', views.home);
+exports.router.post('/newrecipe', views.newRecipe);
