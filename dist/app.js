@@ -68,29 +68,31 @@ const port = 3000;
 exports.app.use(express_1.default.json());
 exports.app.use('/', routes.router);
 exports.app.set('view engine', hbs_1.default);
-let is_db_initialized = db_1.pool.query("SELECT * FROM information_schema.tables \
-  WHERE table_name = 'recipe';").then((result) => __awaiter(void 0, void 0, void 0, function* () {
-    if (result.rows.length == 0) {
-        yield db_1.pool.query("CREATE TABLE recipe (\
-          recipe_id SERIAL NOT NULL PRIMARY KEY,\
-          name VARCHAR(500),\
-          url VARCHAR(500) UNIQUE \
-          );");
-        yield db_1.pool.query("CREATE TABLE ingredient (\
-          ingredient_id SERIAL NOT NULL PRIMARY KEY,\
-          name VARCHAR(200) UNIQUE\
-          );");
-        yield db_1.pool.query("CREATE TABLE recipe_ingredient (\
-          recipe_id INT,\
-          ingredient_id INT,\
-          amount INT, \
-          unit VARCHAR(100),\
-          PRIMARY KEY (recipe_id, ingredient_id),\
-          CONSTRAINT fk_recipe FOREIGN KEY(recipe_id) REFERENCES recipe(recipe_id),\
-          CONSTRAINT fk_ingredient FOREIGN KEY(ingredient_id) REFERENCES ingredient(ingredient_id)\
-          );");
-    }
-}));
+if (process.env.IN_CI != 'true') {
+    let is_db_initialized = db_1.pool.query("SELECT * FROM information_schema.tables \
+    WHERE table_name = 'recipe';").then((result) => __awaiter(void 0, void 0, void 0, function* () {
+        if (result.rows.length == 0) {
+            yield db_1.pool.query("CREATE TABLE recipe (\
+            recipe_id SERIAL NOT NULL PRIMARY KEY,\
+            name VARCHAR(500),\
+            url VARCHAR(500) UNIQUE \
+            );");
+            yield db_1.pool.query("CREATE TABLE ingredient (\
+            ingredient_id SERIAL NOT NULL PRIMARY KEY,\
+            name VARCHAR(200) UNIQUE\
+            );");
+            yield db_1.pool.query("CREATE TABLE recipe_ingredient (\
+            recipe_id INT,\
+            ingredient_id INT,\
+            amount INT, \
+            unit VARCHAR(100),\
+            PRIMARY KEY (recipe_id, ingredient_id),\
+            CONSTRAINT fk_recipe FOREIGN KEY(recipe_id) REFERENCES recipe(recipe_id),\
+            CONSTRAINT fk_ingredient FOREIGN KEY(ingredient_id) REFERENCES ingredient(ingredient_id)\
+            );");
+        }
+    }));
+}
 exports.app.listen(port, () => __awaiter(void 0, void 0, void 0, function* () {
     exports.logger.log({
         level: 'info',

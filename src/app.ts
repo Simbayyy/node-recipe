@@ -38,30 +38,31 @@ app.use(express.json())
 app.use('/', routes.router)
 app.set('view engine', hbs)
 
-let is_db_initialized = pool.query("SELECT * FROM information_schema.tables \
-  WHERE table_name = 'recipe';").then(async (result) => {
-      if (result.rows.length == 0) {
-        await pool.query("CREATE TABLE recipe (\
-          recipe_id SERIAL NOT NULL PRIMARY KEY,\
-          name VARCHAR(500),\
-          url VARCHAR(500) UNIQUE \
-          );")
-        await pool.query("CREATE TABLE ingredient (\
-          ingredient_id SERIAL NOT NULL PRIMARY KEY,\
-          name VARCHAR(200) UNIQUE\
-          );")
-        await pool.query("CREATE TABLE recipe_ingredient (\
-          recipe_id INT,\
-          ingredient_id INT,\
-          amount INT, \
-          unit VARCHAR(100),\
-          PRIMARY KEY (recipe_id, ingredient_id),\
-          CONSTRAINT fk_recipe FOREIGN KEY(recipe_id) REFERENCES recipe(recipe_id),\
-          CONSTRAINT fk_ingredient FOREIGN KEY(ingredient_id) REFERENCES ingredient(ingredient_id)\
-          );")
-      }
-    })
-
+  if (process.env.IN_CI != 'true'){
+  let is_db_initialized = pool.query("SELECT * FROM information_schema.tables \
+    WHERE table_name = 'recipe';").then(async (result) => {
+        if (result.rows.length == 0) {
+          await pool.query("CREATE TABLE recipe (\
+            recipe_id SERIAL NOT NULL PRIMARY KEY,\
+            name VARCHAR(500),\
+            url VARCHAR(500) UNIQUE \
+            );")
+          await pool.query("CREATE TABLE ingredient (\
+            ingredient_id SERIAL NOT NULL PRIMARY KEY,\
+            name VARCHAR(200) UNIQUE\
+            );")
+          await pool.query("CREATE TABLE recipe_ingredient (\
+            recipe_id INT,\
+            ingredient_id INT,\
+            amount INT, \
+            unit VARCHAR(100),\
+            PRIMARY KEY (recipe_id, ingredient_id),\
+            CONSTRAINT fk_recipe FOREIGN KEY(recipe_id) REFERENCES recipe(recipe_id),\
+            CONSTRAINT fk_ingredient FOREIGN KEY(ingredient_id) REFERENCES ingredient(ingredient_id)\
+            );")
+        }
+      })
+}
 app.listen(port, async () => {
   logger.log({
     level: 'info',
