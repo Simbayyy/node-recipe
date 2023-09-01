@@ -10,7 +10,7 @@ export interface Ingredient {
 }
 
 export interface Recipe {
-    title: string,
+    name: string,
     url: string,
     time: Time,
     ingredients: Ingredient[]
@@ -18,7 +18,7 @@ export interface Recipe {
 
 export function isRecipe(recipe: Recipe | object): recipe is Recipe {
     const recipeAs = recipe as Recipe
-    return ((recipeAs.title !== undefined) && (typeof(recipeAs.title) == 'string')
+    return ((recipeAs.name !== undefined) && (typeof(recipeAs.name) == 'string')
             && (recipeAs.url !== undefined) && (typeof(recipeAs.url) == 'string')
             && (recipeAs.time !== undefined) 
             && (recipeAs.ingredients !== undefined)

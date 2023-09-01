@@ -28,7 +28,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.router = void 0;
 const express_1 = __importDefault(require("express"));
+const cors_1 = __importDefault(require("cors"));
 const views = __importStar(require("./views"));
 exports.router = express_1.default.Router();
+exports.router.options(/.*/, (0, cors_1.default)(), views.options);
 exports.router.get('/', views.home);
-exports.router.post('/newrecipe', views.newRecipe);
+exports.router.post('/newrecipe', (0, cors_1.default)(), views.newRecipe);

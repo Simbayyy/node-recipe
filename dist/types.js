@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.isRecipe = void 0;
 function isRecipe(recipe) {
     const recipeAs = recipe;
-    return ((recipeAs.title !== undefined) && (typeof (recipeAs.title) == 'string')
+    return ((recipeAs.name !== undefined) && (typeof (recipeAs.name) == 'string')
         && (recipeAs.url !== undefined) && (typeof (recipeAs.url) == 'string')
         && (recipeAs.time !== undefined)
         && (recipeAs.ingredients !== undefined)

@@ -23,8 +23,10 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.newRecipe = exports.home = void 0;
+exports.newRecipe = exports.options = exports.home = void 0;
 const app = __importStar(require("./app"));
+const db_1 = require("./db");
+const functions_1 = require("./functions");
 const types_1 = require("./types");
 function home(_, res) {
     res.render('home.hbs');
@@ -34,14 +36,23 @@ function home(_, res) {
     });
 }
 exports.home = home;
+function options(req, res) {
+    app.logger.log({
+        level: 'info',
+        message: `Options queried`
+    });
+}
+exports.options = options;
 function newRecipe(req, res) {
+    res.header("Access-Control-Allow-Origin", "*");
     try {
         const recipe = req.body;
         if ((0, types_1.isRecipe)(recipe)) {
             app.logger.log({
                 level: 'info',
-                message: `New recipe ${recipe.title} detected from ${recipe.url}!\n Recipe JSON is ${JSON.stringify(recipe)}`
+                message: `New recipe ${recipe.name} detected from ${recipe.url}!\n Recipe JSON is ${JSON.stringify(recipe)}`
             });
+            (0, db_1.insertRecipe)((0, functions_1.sanitizeRecipe)(recipe));
             res.status(200).json(recipe);
         }
         else {
@@ -49,15 +60,16 @@ function newRecipe(req, res) {
                 level: 'error',
                 message: `New recipe is not corresponding to the Recipe type, but rather ${req}`
             });
+            res.status(500);
             throw TypeError("Request body not of the Recipe type");
         }
     }
-    catch (_a) {
+    catch (e) {
         app.logger.log({
             level: 'error',
-            message: `Could not read request body in newRecipe`
+            message: `Could not read request body in newRecipe.`
         });
-        throw TypeError("Request body not readable");
+        res.status(500).json({ error: "no" });
     }
 }
 exports.newRecipe = newRecipe;
