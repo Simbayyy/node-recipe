@@ -3,6 +3,7 @@ import request from 'supertest'
 import {app} from '../app'
 import { Recipe, isRecipe } from '../types'
 import {pool, insertRecipe} from '../db' 
+import { lintIngredient } from '../functions'
 
 beforeAll(async () => {
     if (process.env.DB_ENV == 'test') {
@@ -123,6 +124,21 @@ const dummyNotRecipe = {
         }
     ]
 }
+
+test('lintIngredients', () => {
+    expect(lintIngredient({ name: "Tomatoes", amount: 3, unit: "cups" }))
+        .toStrictEqual({ name: "tomatoes", amount: 3, unit: "cups" })
+    expect(lintIngredient({ name: " Onions ", amount: 3, unit: "cups" }))
+        .toStrictEqual({ name: "onions", amount: 3, unit: "cups" })
+    expect(lintIngredient({ name: "Bell Peppers (Red)", amount: 3, unit: "cups" }))
+        .toStrictEqual({ name: "bell peppers", amount: 3, unit: "cups" })
+    expect(lintIngredient({ name: "Les onions ", amount: 3, unit: "cups" }))
+        .toStrictEqual({ name: "onions", amount: 3, unit: "cups" })
+    expect(lintIngredient({ name: "D'Onions ", amount: 3, unit: "cups" }))
+        .toStrictEqual({ name: "onions", amount: 3, unit: "cups" })
+    expect(lintIngredient({ name: "", amount: 3, unit: "cups" }))
+        .toStrictEqual({ name: "", amount: 3, unit: "cups" })
+})
 
 test('isRecipe', () => {
     expect(isRecipe(dummyRecipe)).toBe(true)
