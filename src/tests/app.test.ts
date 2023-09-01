@@ -9,12 +9,12 @@ beforeAll(async () => {
     if (process.env.DB_ENV == 'test') {
         // Create test tables
         await pool.query("CREATE TABLE test_recipe (\
-            recipe_id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1),\
+            recipe_id SERIAL NOT NULL PRIMARY KEY,\
             name VARCHAR(500),\
             url VARCHAR(500) UNIQUE \
             );")
         await pool.query("CREATE TABLE test_ingredient (\
-            ingredient_id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1),\
+            ingredient_id SERIAL NOT NULL PRIMARY KEY,\
             name VARCHAR(200) UNIQUE\
             );")
         await pool.query("CREATE TABLE test_recipe_ingredient (\
