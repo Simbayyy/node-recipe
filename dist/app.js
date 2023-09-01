@@ -39,7 +39,6 @@ exports.app = exports.logger = void 0;
 const winston = __importStar(require("winston"));
 const dotenv = __importStar(require("dotenv"));
 const routes = __importStar(require("./routes"));
-const db_1 = require("./db");
 const hbs_1 = __importDefault(require("hbs"));
 const express_1 = __importDefault(require("express"));
 // Load environment variables
@@ -77,8 +76,4 @@ exports.app.listen(port, () => __awaiter(void 0, void 0, void 0, function* () {
         level: 'info',
         message: `Environment variables used are from ${process.env.TEST_VALUE}`
     });
-    const client = yield db_1.pool.connect();
-    const result = yield client.query('SELECT NOW()');
-    console.log(result);
-    yield client.release();
 }));
