@@ -47,8 +47,4 @@ app.listen(port, async () => {
     level: 'info',
     message: `Environment variables used are from ${process.env.TEST_VALUE}`
   });
-  const client = await pool.connect();
-  const result = await client.query('SELECT NOW()')
-  console.log(result)
-  await client.release()
 })
