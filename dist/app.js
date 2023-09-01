@@ -72,12 +72,12 @@ let is_db_initialized = db_1.pool.query("SELECT * FROM information_schema.tables
   WHERE table_name = 'recipe';").then((result) => __awaiter(void 0, void 0, void 0, function* () {
     if (result.rows.length == 0) {
         yield db_1.pool.query("CREATE TABLE recipe (\
-          recipe_id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1),\
+          recipe_id SERIAL NOT NULL PRIMARY KEY,\
           name VARCHAR(500),\
           url VARCHAR(500) UNIQUE \
           );");
         yield db_1.pool.query("CREATE TABLE ingredient (\
-          ingredient_id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1),\
+          ingredient_id SERIAL NOT NULL PRIMARY KEY,\
           name VARCHAR(200) UNIQUE\
           );");
         yield db_1.pool.query("CREATE TABLE recipe_ingredient (\
