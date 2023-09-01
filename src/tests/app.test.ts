@@ -1,11 +1,67 @@
-import { expect, test } from 'vitest'
+import { expect, test, afterAll, beforeAll } from 'vitest'
 import request from 'supertest'
 import {app} from '../app'
 import { Recipe, isRecipe } from '../types'
+import {pool, insertRecipe} from '../db' 
+
+beforeAll(async () => {
+    if (process.env.DB_ENV == 'test') {
+        // Create test tables
+        await pool.query("CREATE TABLE test_recipe (\
+            recipe_id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1),\
+            name VARCHAR(500),\
+            url VARCHAR(500) UNIQUE \
+            );")
+        await pool.query("CREATE TABLE test_ingredient (\
+            ingredient_id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1),\
+            name VARCHAR(200) UNIQUE\
+            );")
+        await pool.query("CREATE TABLE test_recipe_ingredient (\
+            recipe_id INT,\
+            ingredient_id INT,\
+            amount INT, \
+            unit VARCHAR(100),\
+            PRIMARY KEY (recipe_id, ingredient_id),\
+            CONSTRAINT fk_recipe FOREIGN KEY(recipe_id) REFERENCES test_recipe(recipe_id),\
+            CONSTRAINT fk_ingredient FOREIGN KEY(ingredient_id) REFERENCES test_ingredient(ingredient_id)\
+            );")
+    }
+})
+
+afterAll(async () => {
+    if (process.env.DB_ENV == 'test') {
+        // Cleanup created db tables
+        await pool.query("DROP TABLE IF EXISTS test_recipe, test_ingredient, test_recipe_ingredient")
+    }
+})
+
+test('Database entry creation', async () => {
+    if (process.env.DB_ENV == 'test') {
+        let insert_dummy = await insertRecipe(dummyRecipe)
+        expect(insert_dummy?.rows[0].recipe_id).toBe(1)
+        let insert_dummy_2 = await insertRecipe(dummyRecipe)
+        expect(insert_dummy_2).toBe(undefined)
+        let insert_dummy_3 = await insertRecipe(dummyNotRecipe)
+        expect(insert_dummy_3).toBe(undefined)
+        let insert_dummy_4 = await insertRecipe({})
+        expect(insert_dummy_4).toBe(undefined)
+        let insert_dummy_5 = await insertRecipe(dummyRecipe2)
+        expect(insert_dummy_5?.rows[0].recipe_id).toBe(3)
+    }
+})
 
 
-test('Dummy test', () => {
-  expect(1).toBe(1)
+test('Database structure', async () => {
+    if (process.env.DB_ENV == 'test') {
+        let are_tables_created = await pool.query("SELECT table_name FROM INFORMATION_SCHEMA.TABLES WHERE table_schema = 'public';")
+        expect(are_tables_created.rows).toEqual(expect.arrayContaining([
+            {table_name: 'test_recipe'},
+            {table_name: 'test_ingredient'},
+            {table_name: 'test_recipe_ingredient'},
+        ]))
+    } else {
+        return true
+    }
 })
 
 test('GET /', async () => {
@@ -16,8 +72,29 @@ test('GET /', async () => {
 })
 
 const dummyRecipe = {
-    title:"Macaronis",
+    name:"Macaronis",
     url:"http://macaroni",
+    time: {
+        time: 10,
+        unit: "min"
+    },
+    ingredients: [
+        {
+            name: "macaroni",
+            amount: 100,
+            unit: "g"
+        },
+        {
+            name: "macaroni",
+            amount: 200,
+            unit: "g"
+        }
+    ]
+}
+
+const dummyRecipe2 = {
+    name:"Macaronis2",
+    url:"http://macaroni2",
     time: {
         time: 10,
         unit: "min"
