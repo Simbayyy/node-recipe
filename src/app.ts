@@ -39,6 +39,10 @@ app.use('/', routes.router)
 app.set('view engine', hbs)
 
   if (process.env.IN_CI != 'true'){
+    logger.log({
+      level:'info',
+      message:"Attempting check for creation of clean new tables"
+    })
   let is_db_initialized = pool.query("SELECT * FROM information_schema.tables \
     WHERE table_name = 'recipe';").then(async (result) => {
         if (result.rows.length == 0) {

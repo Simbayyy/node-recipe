@@ -69,6 +69,10 @@ exports.app.use(express_1.default.json());
 exports.app.use('/', routes.router);
 exports.app.set('view engine', hbs_1.default);
 if (process.env.IN_CI != 'true') {
+    exports.logger.log({
+        level: 'info',
+        message: "Attempting check for creation of clean new tables"
+    });
     let is_db_initialized = db_1.pool.query("SELECT * FROM information_schema.tables \
     WHERE table_name = 'recipe';").then((result) => __awaiter(void 0, void 0, void 0, function* () {
         if (result.rows.length == 0) {
