@@ -38,9 +38,8 @@ app.use(express.json())
 app.use('/', routes.router)
 app.set('view engine', hbs)
 
-let is_db_initialized = pool.query("SELECT FROM information_schema.tables \
-  WHERE \
-    table_name = 'recipe';").then(async (result) => {
+let is_db_initialized = pool.query("SELECT * FROM information_schema.tables \
+  WHERE table_name = 'recipe';").then(async (result) => {
       if (result.rows.length == 0) {
         await pool.query("CREATE TABLE recipe (\
           recipe_id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1),\
