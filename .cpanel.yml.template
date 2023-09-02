@@ -1,6 +1,7 @@
 ---
 deployment:
  tasks:
+ - echo 'hello world'
  - source /home/sbaillet/nodevenv/APP_NAME/20/bin/activate && cd /home/sbaillet/APP_NAME
  - npm -i
  - npm run dist/scripts/new_deployment.js

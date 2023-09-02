@@ -1,6 +1,7 @@
 ---
 deployment:
  tasks:
+ - echo 'hello world'
  - source /home/sbaillet/nodevenv/node-preprod/20/bin/activate && cd /home/sbaillet/node-preprod
  - npm -i
  - npm run dist/scripts/new_deployment.js
