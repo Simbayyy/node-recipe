@@ -9,7 +9,9 @@
     "test": "export IN_CI='true' && vitest",
     "prod": "export NODE_ENV='production' && npm start",
     "ssl": "npm config set strict-ssl=false",
-    "push_preprod": "cp post-receive.template .git/hooks/post-receive && sed -i 's/APP_NAME/node-preprod/g' .git/hooks/post-receive && git push preprod"
+    "deploy_preprod": "source /home/sbaillet/nodevenv/node-preprod/20/bin/activate && cd /home/sbaillet/node-preprod && npm run deploy",
+    "deploy_prod": "source /home/sbaillet/nodevenv/node-recipe/20/bin/activate && cd /home/sbaillet/node-recipe && npm run deploy",
+    "deploy": "npm -i && npm run dist/scripts/new_deployment.js && touch tmp/restart.txt"
   },
   "repository": {
     "type": "git",
