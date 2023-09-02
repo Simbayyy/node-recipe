@@ -1,7 +1,7 @@
 import { Pool } from 'pg'
 import { Recipe, isRecipe } from './types'
 import * as dotenv from 'dotenv'
-import { logger } from './app'
+import { logger } from './logger'
 import { sanitizeRecipe } from './functions'
 
 // Load environment variables

@@ -35,44 +35,25 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.app = exports.logger = void 0;
-const winston = __importStar(require("winston"));
+exports.app = void 0;
 const dotenv = __importStar(require("dotenv"));
 const routes = __importStar(require("./routes"));
 const hbs_1 = __importDefault(require("hbs"));
 const express_1 = __importDefault(require("express"));
+const logger_1 = require("./logger");
 // Load environment variables
 dotenv.config({ path: process.env.NODE_ENV == 'production' ? '.env' : '.env.development.local' });
-// Create logger
-exports.logger = winston.createLogger({
-    level: 'info',
-    format: winston.format.json(),
-    defaultMeta: { service: 'user-service' },
-    transports: [
-        //
-        // - Write all logs with importance level of `error` or less to `error.log`
-        // - Write all logs with importance level of `info` or less to `combined.log`
-        //
-        new winston.transports.File({ filename: 'error.log', level: 'error' }),
-        new winston.transports.File({ filename: 'combined.log' }),
-    ],
-});
-if (process.env.NODE_ENV !== 'production') {
-    exports.logger.add(new winston.transports.Console({
-        format: winston.format.simple(),
-    }));
-}
 exports.app = (0, express_1.default)();
 const port = process.env.APP_NAME == 'node-preprod' ? 3002 : 3001;
 exports.app.use(express_1.default.json());
 exports.app.use('/', routes.router);
 exports.app.set('view engine', hbs_1.default);
 exports.app.listen(port, () => __awaiter(void 0, void 0, void 0, function* () {
-    exports.logger.log({
+    logger_1.logger.log({
         level: 'info',
         message: `Server running on port ${port}`
     });
-    exports.logger.log({
+    logger_1.logger.log({
         level: 'info',
         message: `Environment variables used are from ${process.env.TEST_VALUE}`
     });
