@@ -32,7 +32,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 
 export const app = express()
-const port = process.env.APP_NAME == 'node-preprod' ? 3000 : 3001 ;
+const port = process.env.APP_NAME == 'node-preprod' ? 3002 : 3001 ;
 
 app.use(express.json())
 app.use('/', routes.router)
