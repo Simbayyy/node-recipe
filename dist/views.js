@@ -22,8 +22,17 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.newRecipe = exports.options = exports.home = void 0;
+exports.newRecipe = exports.getRecipe = exports.options = exports.home = void 0;
 const app = __importStar(require("./app"));
 const db_1 = require("./db");
 const functions_1 = require("./functions");
@@ -43,6 +52,27 @@ function options(req, res) {
     });
 }
 exports.options = options;
+function getRecipe(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            let recipe = yield (0, db_1.selectRecipe)(req.params.recipeId);
+            if ((0, types_1.isRecipe)(recipe)) {
+                res.status(200).json(recipe);
+            }
+            else {
+                throw Error('Selected object is not a recipe');
+            }
+        }
+        catch (e) {
+            app.logger.log({
+                level: 'error',
+                message: `Could not get recipe ${req.params.recipeId}\nError: ${e}`
+            });
+            res.status(500).json({ error: "Could not get desired recipe" });
+        }
+    });
+}
+exports.getRecipe = getRecipe;
 function newRecipe(req, res) {
     res.header("Access-Control-Allow-Origin", "*");
     try {

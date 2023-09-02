@@ -26,6 +26,7 @@ beforeAll(async () => {
             CONSTRAINT fk_recipe FOREIGN KEY(recipe_id) REFERENCES test_recipe(recipe_id),\
             CONSTRAINT fk_ingredient FOREIGN KEY(ingredient_id) REFERENCES test_ingredient(ingredient_id)\
             );")
+        await insertRecipe(dummyRecipe)
     }
 })
 
@@ -36,10 +37,24 @@ afterAll(async () => {
     }
 })
 
+test('GET /recipes/recipeId', async () => {
+    if (process.env.DB_ENV == 'test') {
+        const response = await request(app)
+            .get('/recipes/1')
+            .set('Accept', 'application/json')
+        expect(response.status).toEqual(200)
+
+        const response2 = await request(app)
+            .get('/recipes/10')
+            .set('Accept', 'application/json')
+        expect(response2.status).toEqual(500)
+    } else {
+        return true
+    }
+})
+
 test('Database entry creation', async () => {
     if (process.env.DB_ENV == 'test') {
-        let insert_dummy = await insertRecipe(dummyRecipe)
-        expect(insert_dummy?.rows[0].recipe_id).toBe(1)
         let insert_dummy_2 = await insertRecipe(dummyRecipe)
         expect(insert_dummy_2).toBe(undefined)
         let insert_dummy_3 = await insertRecipe(dummyNotRecipe)

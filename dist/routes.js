@@ -33,4 +33,5 @@ const views = __importStar(require("./views"));
 exports.router = express_1.default.Router();
 exports.router.options(/.*/, (0, cors_1.default)(), views.options);
 exports.router.get('/', views.home);
+exports.router.get('/recipes/:recipeId', views.getRecipe);
 exports.router.post('/newrecipe', (0, cors_1.default)(), views.newRecipe);

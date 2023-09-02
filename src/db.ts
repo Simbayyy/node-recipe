@@ -16,6 +16,7 @@ export const pool = new Pool({
     host: 'localhost',
   })
 
+
 export async function insertRecipe(unsanitized_recipe: any) {
     if (isRecipe(unsanitized_recipe)) {
         // Sanitize input
@@ -77,3 +78,33 @@ export async function insertRecipe(unsanitized_recipe: any) {
         return undefined
     }
 }
+
+export async function selectRecipe (recipeId: number) {
+    const query = `SELECT * \
+        FROM ${process.env.DB_ENV == 'test' ? "test_" :""}recipe \
+        WHERE recipe_id = $1`
+    const values = [recipeId]
+
+    const client = await pool.connect();
+    const result = await client.query(query, values);
+
+    if (result.rows.length != 0){
+        let ingredients_id = await pool.query(`SELECT * FROM ingredient \
+            WHERE ingredient_id IN
+            (SELECT ingredient_id \
+            FROM ${process.env.DB_ENV == 'test' ? "test_" :""}recipe_ingredient \
+            WHERE recipe_id = $1);`, [recipeId])
+        let recipe:Recipe = {
+            name: result.rows[0].name,
+            url: result.rows[0].url,
+            time: {time:0,unit:'g'},
+            ingredients: ingredients_id.rows
+        } 
+        console.log(JSON.stringify(recipe))
+        return recipe
+    }
+
+    // Release the client back to the pool
+    client.release();
+    return result
+} 

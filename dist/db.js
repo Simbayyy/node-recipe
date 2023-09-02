@@ -32,7 +32,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.insertRecipe = exports.pool = void 0;
+exports.selectRecipe = exports.insertRecipe = exports.pool = void 0;
 const pg_1 = require("pg");
 const types_1 = require("./types");
 const dotenv = __importStar(require("dotenv"));
@@ -113,3 +113,32 @@ function insertRecipe(unsanitized_recipe) {
     });
 }
 exports.insertRecipe = insertRecipe;
+function selectRecipe(recipeId) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const query = `SELECT * \
+        FROM ${process.env.DB_ENV == 'test' ? "test_" : ""}recipe \
+        WHERE recipe_id = $1`;
+        const values = [recipeId];
+        const client = yield exports.pool.connect();
+        const result = yield client.query(query, values);
+        if (result.rows.length != 0) {
+            let ingredients_id = yield exports.pool.query(`SELECT * FROM ingredient \
+            WHERE ingredient_id IN
+            (SELECT ingredient_id \
+            FROM ${process.env.DB_ENV == 'test' ? "test_" : ""}recipe_ingredient \
+            WHERE recipe_id = $1);`, [recipeId]);
+            let recipe = {
+                name: result.rows[0].name,
+                url: result.rows[0].url,
+                time: { time: 0, unit: 'g' },
+                ingredients: ingredients_id.rows
+            };
+            console.log(JSON.stringify(recipe));
+            return recipe;
+        }
+        // Release the client back to the pool
+        client.release();
+        return result;
+    });
+}
+exports.selectRecipe = selectRecipe;
