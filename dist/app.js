@@ -74,8 +74,9 @@ if (process.env.IN_CI != 'true') {
         message: "Attempting check for creation of clean new tables"
     });
     let is_db_initialized = db_1.pool.query("SELECT * FROM information_schema.tables \
-    WHERE table_name = 'recipe';").then((result) => __awaiter(void 0, void 0, void 0, function* () {
-        if (result.rows.length == 0) {
+    WHERE table_name IN ('recipe', 'ingredient', 'recipe_ingredient', 'recipe_time');").then((result) => __awaiter(void 0, void 0, void 0, function* () {
+        if (result.rows.length != 4) {
+            yield db_1.pool.query("DROP TABLE IF EXISTS recipe, ingredient, recipe_ingredient, recipe_time");
             yield db_1.pool.query("CREATE TABLE recipe (\
             recipe_id SERIAL NOT NULL PRIMARY KEY,\
             name VARCHAR(500),\
@@ -93,6 +94,13 @@ if (process.env.IN_CI != 'true') {
             PRIMARY KEY (recipe_id, ingredient_id),\
             CONSTRAINT fk_recipe FOREIGN KEY(recipe_id) REFERENCES recipe(recipe_id),\
             CONSTRAINT fk_ingredient FOREIGN KEY(ingredient_id) REFERENCES ingredient(ingredient_id)\
+            );");
+            yield db_1.pool.query("CREATE TABLE recipe_time (\
+            time_id SERIAL NOT NULL PRIMARY KEY,\
+            recipe_id INT,\
+            amount INT, \
+            unit VARCHAR(100),\
+            CONSTRAINT fk_recipe FOREIGN KEY(recipe_id) REFERENCES recipe(recipe_id)\
             );");
         }
     }));

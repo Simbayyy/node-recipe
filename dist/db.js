@@ -93,12 +93,21 @@ function insertRecipe(unsanitized_recipe) {
                     level: 'info',
                     message: `Successfully inserted its ingredients in the database with ids ${ingredients_id}`
                 });
+                // Attempt to insert time
+                let insert_time = yield exports.pool.query(`INSERT INTO \
+            ${process.env.DB_ENV == 'test' ? "test_" : ""}recipe_time(recipe_id,time,unit) \
+            VALUES($1, $2, $3) \
+            RETURNING time_id`, [new_recipe_id, recipe.time.time, recipe.time.unit]);
+                app_1.logger.log({
+                    level: 'info',
+                    message: `Successfully inserted its time in the database with ids ${insert_time.rows[0].time_id}`
+                });
                 return response;
             }
             catch (e) {
                 app_1.logger.log({
                     level: 'error',
-                    message: `Failed with insertion of recipe from ${recipe.url}\nError message is ${e}\nIngredient list: ${recipe.ingredients}`
+                    message: `Failed with insertion of recipe from ${recipe.url}\nError message is ${e}. \nTime to be inserted was ${['recipe_id', recipe.time.time, recipe.time.unit]}`
                 });
                 return undefined;
             }
@@ -127,10 +136,13 @@ function selectRecipe(recipeId) {
                 INNER JOIN ${process.env.DB_ENV == 'test' ? "test_" : ""}recipe_ingredient AS ri\
                 ON ri.recipe_id = $1\
                 WHERE i.ingredient_id = ri.ingredient_id;`, [recipeId]);
+                let time = yield exports.pool.query(`SELECT time, unit \
+                FROM ${process.env.DB_ENV == 'test' ? "test_" : ""}recipe_time \
+                WHERE recipe_id = $1;`, [recipeId]);
                 let recipe = {
                     name: result.rows[0].name,
                     url: result.rows[0].url,
-                    time: { time: 0, unit: 'g' },
+                    time: { time: time.rows[0].time, unit: time.rows[0].unit },
                     ingredients: ingredients_id.rows
                 };
                 return recipe;

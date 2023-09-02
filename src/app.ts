@@ -44,8 +44,9 @@ app.set('view engine', hbs)
       message:"Attempting check for creation of clean new tables"
     })
   let is_db_initialized = pool.query("SELECT * FROM information_schema.tables \
-    WHERE table_name = 'recipe';").then(async (result) => {
-        if (result.rows.length == 0) {
+    WHERE table_name IN ('recipe', 'ingredient', 'recipe_ingredient', 'recipe_time');").then(async (result) => {
+        if (result.rows.length != 4) {
+          await pool.query("DROP TABLE IF EXISTS recipe, ingredient, recipe_ingredient, recipe_time")
           await pool.query("CREATE TABLE recipe (\
             recipe_id SERIAL NOT NULL PRIMARY KEY,\
             name VARCHAR(500),\
@@ -64,7 +65,13 @@ app.set('view engine', hbs)
             CONSTRAINT fk_recipe FOREIGN KEY(recipe_id) REFERENCES recipe(recipe_id),\
             CONSTRAINT fk_ingredient FOREIGN KEY(ingredient_id) REFERENCES ingredient(ingredient_id)\
             );")
-        }
+          await pool.query("CREATE TABLE recipe_time (\
+            time_id SERIAL NOT NULL PRIMARY KEY,\
+            recipe_id INT,\
+            amount INT, \
+            unit VARCHAR(100),\
+            CONSTRAINT fk_recipe FOREIGN KEY(recipe_id) REFERENCES recipe(recipe_id)\
+            );")        }
       })
 }
 app.listen(port, async () => {
