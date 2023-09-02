@@ -3,7 +3,7 @@ import request from 'supertest'
 import {app} from '../app'
 import { Recipe, isRecipe } from '../types'
 import {pool, insertRecipe} from '../db' 
-import { lintIngredient } from '../functions'
+import { lintIngredient, sanitizeRecipe } from '../functions'
 
 beforeAll(async () => {
     if (process.env.DB_ENV == 'test') {
@@ -26,20 +26,44 @@ beforeAll(async () => {
             CONSTRAINT fk_recipe FOREIGN KEY(recipe_id) REFERENCES test_recipe(recipe_id),\
             CONSTRAINT fk_ingredient FOREIGN KEY(ingredient_id) REFERENCES test_ingredient(ingredient_id)\
             );")
+        await pool.query("CREATE TABLE test_recipe_time (\
+            time_id SERIAL NOT NULL PRIMARY KEY,\
+            recipe_id INT,\
+            time INT, \
+            unit VARCHAR(100),\
+            CONSTRAINT fk_recipe FOREIGN KEY(recipe_id) REFERENCES test_recipe(recipe_id)\
+            );")
+        await insertRecipe(dummyRecipe)
     }
 })
 
 afterAll(async () => {
     if (process.env.DB_ENV == 'test') {
         // Cleanup created db tables
-        await pool.query("DROP TABLE IF EXISTS test_recipe, test_ingredient, test_recipe_ingredient")
+        await pool.query("DROP TABLE IF EXISTS test_recipe, test_ingredient, test_recipe_ingredient, test_recipe_time")
+    }
+})
+
+test('GET /recipes/recipeId', async () => {
+    if (process.env.DB_ENV == 'test') {
+        const response = await request(app)
+            .get('/recipes/1')
+            .set('Accept', 'application/json')
+            .set('Content-Type', 'application/json')
+        expect(response.status).toEqual(200)
+        expect(response.body).toStrictEqual(sanitizeRecipe(dummyRecipe))
+
+        const response2 = await request(app)
+            .get('/recipes/10')
+            .set('Accept', 'application/json')
+        expect(response2.status).toEqual(500)
+    } else {
+        return true
     }
 })
 
 test('Database entry creation', async () => {
     if (process.env.DB_ENV == 'test') {
-        let insert_dummy = await insertRecipe(dummyRecipe)
-        expect(insert_dummy?.rows[0].recipe_id).toBe(1)
         let insert_dummy_2 = await insertRecipe(dummyRecipe)
         expect(insert_dummy_2).toBe(undefined)
         let insert_dummy_3 = await insertRecipe(dummyNotRecipe)

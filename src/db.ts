@@ -16,6 +16,7 @@ export const pool = new Pool({
     host: 'localhost',
   })
 
+
 export async function insertRecipe(unsanitized_recipe: any) {
     if (isRecipe(unsanitized_recipe)) {
         // Sanitize input
@@ -31,6 +32,7 @@ export async function insertRecipe(unsanitized_recipe: any) {
                 level: 'info',
                 message: `Successfully created recipe with id ${new_recipe_id}`            
             }) 
+
             // Attempts to insert all ingredients  
             let ingredients_id = await Promise.all(recipe.ingredients.map(async (ingredient, index) => {
                 let check_ingredient = await pool.query(`SELECT ingredient_id \
@@ -61,11 +63,21 @@ export async function insertRecipe(unsanitized_recipe: any) {
                 level: 'info',
                 message: `Successfully inserted its ingredients in the database with ids ${ingredients_id}`            
             })
+
+            // Attempt to insert time
+            let insert_time = await pool.query(`INSERT INTO \
+            ${process.env.DB_ENV == 'test' ? "test_" : ""}recipe_time(recipe_id,time,unit) \
+            VALUES($1, $2, $3) \
+            RETURNING time_id`, [new_recipe_id, recipe.time.time, recipe.time.unit])
+            logger.log({
+                level: 'info',
+                message: `Successfully inserted its time in the database with ids ${insert_time.rows[0].time_id}`            
+            })
             return response
         } catch (e) {
             logger.log({
                 level: 'error',
-                message: `Failed with insertion of recipe from ${recipe.url}\nError message is ${e}\nIngredient list: ${recipe.ingredients}`            
+                message: `Failed with insertion of recipe from ${recipe.url}\nError message is ${e}. \nTime to be inserted was ${['recipe_id', recipe.time.time, recipe.time.unit]}`            
             })  
             return undefined
         }
@@ -77,3 +89,40 @@ export async function insertRecipe(unsanitized_recipe: any) {
         return undefined
     }
 }
+
+export async function selectRecipe (recipeId: number) {
+    try 
+        {const query = `SELECT * \
+            FROM ${process.env.DB_ENV == 'test' ? "test_" :""}recipe \
+            WHERE recipe_id = $1`
+        const values = [recipeId]
+
+        const result = await pool.query(query, values);
+
+        if (result.rows.length != 0){
+            let ingredients_id = await pool.query(`SELECT i.name, ri.amount, ri.unit \
+                FROM ${process.env.DB_ENV == 'test' ? "test_" :""}ingredient AS i \
+                INNER JOIN ${process.env.DB_ENV == 'test' ? "test_" :""}recipe_ingredient AS ri\
+                ON ri.recipe_id = $1\
+                WHERE i.ingredient_id = ri.ingredient_id;`, [recipeId])
+            let time = await pool.query(`SELECT time, unit \
+                FROM ${process.env.DB_ENV == 'test' ? "test_" :""}recipe_time \
+                WHERE recipe_id = $1;`, [recipeId])
+            let recipe:Recipe = {
+                name: result.rows[0].name,
+                url: result.rows[0].url,
+                time: {time:time.rows[0].time,unit:time.rows[0].unit},
+                ingredients: ingredients_id.rows
+            } 
+            return recipe
+        } else {
+            throw Error("No recipe found")
+        }
+    } catch (e) {
+        logger.log({
+            level:'error',
+            message:`Could not fetch recipe\nError: ${e}`
+        })
+        return {}
+    }
+} 

@@ -1,5 +1,5 @@
 import * as app from './app'
-import { insertRecipe } from './db';
+import { insertRecipe, selectRecipe } from './db';
 import { sanitizeRecipe } from './functions';
 import {Recipe, isRecipe} from './types'
 
@@ -16,6 +16,25 @@ export function options (req:any, res:any) {
     level: 'info',
     message: `Options queried`
   });  
+}
+
+export async function getRecipe (req:any, res:any) {
+  try {
+    let recipe = await selectRecipe(req.params.recipeId)
+    if (isRecipe(recipe)) {
+      res.status(200).json(recipe)
+    } else {
+      throw Error(`Selected object is not a recipe: ${JSON.stringify(recipe)}`)
+    }
+  }
+  catch (e) {
+    app.logger.log({
+      level:'error',
+      message:`Could not get recipe ${req.params.recipeId}\nError: ${e}`
+    })
+    res.status(500).json({error:"Could not get desired recipe"})
+  }
+
 }
 
 export function newRecipe (req:any, res:any) {
