@@ -36,7 +36,7 @@ exports.selectRecipe = exports.insertRecipe = exports.pool = void 0;
 const pg_1 = require("pg");
 const types_1 = require("./types");
 const dotenv = __importStar(require("dotenv"));
-const app_1 = require("./app");
+const logger_1 = require("./logger");
 const functions_1 = require("./functions");
 // Load environment variables
 dotenv.config({ path: process.env.NODE_ENV == 'production' ? '.env' : '.env.development.local' });
@@ -60,7 +60,7 @@ function insertRecipe(unsanitized_recipe) {
             VALUES($1, $2) \
             RETURNING recipe_id`, [recipe.name, recipe.url]);
                 let new_recipe_id = response.rows[0].recipe_id;
-                app_1.logger.log({
+                logger_1.logger.log({
                     level: 'info',
                     message: `Successfully created recipe with id ${new_recipe_id}`
                 });
@@ -83,13 +83,13 @@ function insertRecipe(unsanitized_recipe) {
                     yield exports.pool.query(`INSERT INTO \
                     ${process.env.DB_ENV == 'test' ? "test_" : ""}recipe_ingredient(recipe_id,ingredient_id,amount,unit) \
                     VALUES($1, $2, $3, $4);`, [new_recipe_id, ingredient_id, ingredient.amount, ingredient.unit]);
-                    app_1.logger.log({
+                    logger_1.logger.log({
                         level: 'info',
                         message: `Successfully inserted ingredient ${index} in the database with id ${ingredient_id}`
                     });
                     return ingredient_id;
                 })));
-                app_1.logger.log({
+                logger_1.logger.log({
                     level: 'info',
                     message: `Successfully inserted its ingredients in the database with ids ${ingredients_id}`
                 });
@@ -98,14 +98,14 @@ function insertRecipe(unsanitized_recipe) {
             ${process.env.DB_ENV == 'test' ? "test_" : ""}recipe_time(recipe_id,time,unit) \
             VALUES($1, $2, $3) \
             RETURNING time_id`, [new_recipe_id, recipe.time.time, recipe.time.unit]);
-                app_1.logger.log({
+                logger_1.logger.log({
                     level: 'info',
                     message: `Successfully inserted its time in the database with ids ${insert_time.rows[0].time_id}`
                 });
                 return response;
             }
             catch (e) {
-                app_1.logger.log({
+                logger_1.logger.log({
                     level: 'error',
                     message: `Failed with insertion of recipe from ${recipe.url}\nError message is ${e}. \nTime to be inserted was ${['recipe_id', recipe.time.time, recipe.time.unit]}`
                 });
@@ -113,7 +113,7 @@ function insertRecipe(unsanitized_recipe) {
             }
         }
         else {
-            app_1.logger.log({
+            logger_1.logger.log({
                 level: 'error',
                 message: `Recipe from ${unsanitized_recipe.url ? unsanitized_recipe.url : "unrecognized URL"} is in fact not a recipe`
             });
@@ -152,7 +152,7 @@ function selectRecipe(recipeId) {
             }
         }
         catch (e) {
-            app_1.logger.log({
+            logger_1.logger.log({
                 level: 'error',
                 message: `Could not fetch recipe\nError: ${e}`
             });

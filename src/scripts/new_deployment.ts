@@ -1,4 +1,4 @@
-import { logger } from "../app";
+import { logger } from "../logger";
 
 logger.log({
     level:'info',

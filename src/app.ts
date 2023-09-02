@@ -1,35 +1,11 @@
-import * as http from "http"
-import * as winston from "winston"
 import * as dotenv from 'dotenv'
 import * as routes from './routes'
-import {pool} from './db'
 import hbs from 'hbs'
 import express from 'express'
+import { logger } from "./logger"
 
 // Load environment variables
 dotenv.config({path: process.env.NODE_ENV == 'production' ? '.env' : '.env.development.local'})
-
-// Create logger
-export const logger = winston.createLogger({
-  level: 'info',
-  format: winston.format.json(),
-  defaultMeta: { service: 'user-service' },
-  transports: [
-    //
-    // - Write all logs with importance level of `error` or less to `error.log`
-    // - Write all logs with importance level of `info` or less to `combined.log`
-    //
-    new winston.transports.File({ filename: 'error.log', level: 'error' }),
-    new winston.transports.File({ filename: 'combined.log' }),
-  ],
-});
-
-if (process.env.NODE_ENV !== 'production') {
-  logger.add(new winston.transports.Console({
-    format: winston.format.simple(),
-  }));
-}
-
 
 export const app = express()
 const port = 3000;
