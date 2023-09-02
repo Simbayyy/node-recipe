@@ -63,7 +63,7 @@ if (process.env.NODE_ENV !== 'production') {
     }));
 }
 exports.app = (0, express_1.default)();
-const port = 3000;
+const port = process.env.APP_NAME == 'node-preprod' ? 3002 : 3001;
 exports.app.use(express_1.default.json());
 exports.app.use('/', routes.router);
 exports.app.set('view engine', hbs_1.default);
