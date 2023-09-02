@@ -98,7 +98,7 @@ if (process.env.IN_CI != 'true') {
             yield db_1.pool.query("CREATE TABLE recipe_time (\
             time_id SERIAL NOT NULL PRIMARY KEY,\
             recipe_id INT,\
-            amount INT, \
+            time INT, \
             unit VARCHAR(100),\
             CONSTRAINT fk_recipe FOREIGN KEY(recipe_id) REFERENCES recipe(recipe_id)\
             );");
