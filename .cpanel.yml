@@ -1,7 +1,7 @@
 ---
 deployment:
  tasks:
- - source /home/sbaillet/nodevenv/$APP_NAME/20/bin/activate && cd /home/sbaillet/$APP_NAME
+ - source /home/sbaillet/nodevenv/node-preprod/20/bin/activate && cd /home/sbaillet/node-preprod
  - npm -i
  - npm run dist/scripts/new_deployment.js
  - touch tmp/restart.txt
