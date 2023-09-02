@@ -9,8 +9,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const app_1 = require("../app");
 const db_1 = require("../db");
-console.log("Resetting DB tables");
+app_1.logger.log({
+    level: 'info',
+    message: "Resetting DB tables"
+});
+reset_db();
 function reset_db() {
     return __awaiter(this, void 0, void 0, function* () {
         yield db_1.pool.query("DROP TABLE IF EXISTS recipe, ingredient, recipe_ingredient, recipe_time");
