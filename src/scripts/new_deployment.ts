@@ -1,3 +1,6 @@
-import { pool } from "../db"
+import { logger } from "../app";
 
-pool.query("SELECT NOW").then((res) => console.log(res.rows[0]))
+logger.log({
+    level:'info',
+    message:`Deployment of app in ${process.env.APP_NAME}, at ${console.time}`
+})
