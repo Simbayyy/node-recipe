@@ -8,7 +8,8 @@
     "test_db": "export DB_ENV='test' && vitest",
     "test": "export IN_CI='true' && vitest",
     "prod": "export NODE_ENV='production' && npm start",
-    "ssl": "npm config set strict-ssl=false"
+    "ssl": "npm config set strict-ssl=false",
+    "push_preprod": "cp .cpanel.yml.template .cpanel.yml && sed -i 's/APP_NAME/node-preprod/g' .cpanel.yml && git add .cpanel.yml && git commit -m 'auto:built deployment file for preprod' && git push preprod"
   },
   "repository": {
     "type": "git",
