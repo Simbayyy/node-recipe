@@ -1,11 +1,6 @@
-import { logger } from "../app";
 import { pool } from "../db";
 
-logger.log({
-    level:'info',
-    message:"Resetting DB tables"
-})
-reset_db()
+console.log("Resetting DB tables")
 
 async function reset_db() {
     await pool.query("DROP TABLE IF EXISTS recipe, ingredient, recipe_ingredient, recipe_time")
