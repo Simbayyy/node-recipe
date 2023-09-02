@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.lintIngredient = exports.sanitizeRecipe = void 0;
+exports.translateIngredient = exports.lintIngredient = exports.sanitizeRecipe = void 0;
 function sanitizeRecipe(recipe) {
     let newrecipe = {
         name: recipe.name,
@@ -28,3 +28,7 @@ function lintIngredient(ingredient) {
     return newingredient;
 }
 exports.lintIngredient = lintIngredient;
+function translateIngredient(name) {
+    return name;
+}
+exports.translateIngredient = translateIngredient;

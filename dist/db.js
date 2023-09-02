@@ -32,7 +32,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.selectRecipe = exports.insertRecipe = exports.pool = void 0;
+exports.selectRecipe = exports.insertRecipe = exports.pool = exports.test_ = void 0;
 const pg_1 = require("pg");
 const types_1 = require("./types");
 const dotenv = __importStar(require("dotenv"));
@@ -40,6 +40,8 @@ const logger_1 = require("./logger");
 const functions_1 = require("./functions");
 // Load environment variables
 dotenv.config({ path: process.env.NODE_ENV == 'production' ? '.env' : '.env.development.local' });
+// Prefix (or not) test_ to table names 
+exports.test_ = process.env.DB_ENV == 'test' ? "test_" : "";
 // Connect to PostgreSQL database
 exports.pool = new pg_1.Pool({
     user: process.env.PGUSER || '',
@@ -56,7 +58,7 @@ function insertRecipe(unsanitized_recipe) {
             try {
                 // Attempts to insert recipe
                 let response = yield exports.pool.query(`INSERT INTO \
-            ${process.env.DB_ENV == 'test' ? "test_" : ""}recipe(name,url) \
+            ${exports.test_}recipe(name,url) \
             VALUES($1, $2) \
             RETURNING recipe_id`, [recipe.name, recipe.url]);
                 let new_recipe_id = response.rows[0].recipe_id;
@@ -72,7 +74,7 @@ function insertRecipe(unsanitized_recipe) {
                     let ingredient_id;
                     if (check_ingredient.rows.length == 0) {
                         let insert_ingredient = yield exports.pool.query(`INSERT INTO \
-                    ${process.env.DB_ENV == 'test' ? "test_" : ""}ingredient(name) \
+                    ${exports.test_}ingredient(name) \
                     VALUES($1) \
                     RETURNING ingredient_id`, [ingredient.name]);
                         ingredient_id = insert_ingredient.rows[0].ingredient_id;
@@ -81,7 +83,7 @@ function insertRecipe(unsanitized_recipe) {
                         ingredient_id = check_ingredient.rows[0].ingredient_id;
                     }
                     yield exports.pool.query(`INSERT INTO \
-                    ${process.env.DB_ENV == 'test' ? "test_" : ""}recipe_ingredient(recipe_id,ingredient_id,amount,unit) \
+                    ${exports.test_}recipe_ingredient(recipe_id,ingredient_id,amount,unit) \
                     VALUES($1, $2, $3, $4);`, [new_recipe_id, ingredient_id, ingredient.amount, ingredient.unit]);
                     logger_1.logger.log({
                         level: 'info',
@@ -95,7 +97,7 @@ function insertRecipe(unsanitized_recipe) {
                 });
                 // Attempt to insert time
                 let insert_time = yield exports.pool.query(`INSERT INTO \
-            ${process.env.DB_ENV == 'test' ? "test_" : ""}recipe_time(recipe_id,time,unit) \
+            ${exports.test_}recipe_time(recipe_id,time,unit) \
             VALUES($1, $2, $3) \
             RETURNING time_id`, [new_recipe_id, recipe.time.time, recipe.time.unit]);
                 logger_1.logger.log({

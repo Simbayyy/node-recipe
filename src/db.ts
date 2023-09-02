@@ -7,6 +7,9 @@ import { sanitizeRecipe } from './functions'
 // Load environment variables
 dotenv.config({path: process.env.NODE_ENV == 'production' ? '.env' : '.env.development.local'})
 
+// Prefix (or not) test_ to table names 
+export const test_ = process.env.DB_ENV == 'test' ? "test_" : ""
+
 // Connect to PostgreSQL database
 export const pool = new Pool({
     user: process.env.PGUSER || '',
@@ -24,7 +27,7 @@ export async function insertRecipe(unsanitized_recipe: any) {
         try {
             // Attempts to insert recipe
             let response = await pool.query(`INSERT INTO \
-            ${process.env.DB_ENV == 'test' ? "test_" : ""}recipe(name,url) \
+            ${test_}recipe(name,url) \
             VALUES($1, $2) \
             RETURNING recipe_id`, [recipe.name, recipe.url])
             let new_recipe_id = response.rows[0].recipe_id
@@ -41,7 +44,7 @@ export async function insertRecipe(unsanitized_recipe: any) {
                 let ingredient_id: number
                 if (check_ingredient.rows.length == 0) {
                     let insert_ingredient = await pool.query(`INSERT INTO \
-                    ${process.env.DB_ENV == 'test' ? "test_" : ""}ingredient(name) \
+                    ${test_}ingredient(name) \
                     VALUES($1) \
                     RETURNING ingredient_id`, [ingredient.name])
                     ingredient_id = insert_ingredient.rows[0].ingredient_id
@@ -50,7 +53,7 @@ export async function insertRecipe(unsanitized_recipe: any) {
                 }
                 await pool.query(
                     `INSERT INTO \
-                    ${process.env.DB_ENV == 'test' ? "test_" : ""}recipe_ingredient(recipe_id,ingredient_id,amount,unit) \
+                    ${test_}recipe_ingredient(recipe_id,ingredient_id,amount,unit) \
                     VALUES($1, $2, $3, $4);`,
                     [new_recipe_id, ingredient_id, ingredient.amount, ingredient.unit])
                 logger.log({
@@ -66,7 +69,7 @@ export async function insertRecipe(unsanitized_recipe: any) {
 
             // Attempt to insert time
             let insert_time = await pool.query(`INSERT INTO \
-            ${process.env.DB_ENV == 'test' ? "test_" : ""}recipe_time(recipe_id,time,unit) \
+            ${test_}recipe_time(recipe_id,time,unit) \
             VALUES($1, $2, $3) \
             RETURNING time_id`, [new_recipe_id, recipe.time.time, recipe.time.unit])
             logger.log({

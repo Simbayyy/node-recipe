@@ -31,3 +31,8 @@ export function lintIngredient(ingredient: Ingredient): Ingredient {
     }
     return newingredient
 }
+
+export function translateIngredient(name: string): string {
+    
+    return name 
+}

@@ -1,4 +1,4 @@
-import { logger } from "../app";
+import { logger } from "../logger";
 import { pool } from "../db";
 
 logger.log({
