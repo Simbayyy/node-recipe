@@ -60,7 +60,7 @@ function getRecipe(req, res) {
                 res.status(200).json(recipe);
             }
             else {
-                throw Error('Selected object is not a recipe');
+                throw Error(`Selected object is not a recipe: ${JSON.stringify(recipe)}`);
             }
         }
         catch (e) {

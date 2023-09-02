@@ -24,7 +24,7 @@ export async function getRecipe (req:any, res:any) {
     if (isRecipe(recipe)) {
       res.status(200).json(recipe)
     } else {
-      throw Error('Selected object is not a recipe')
+      throw Error(`Selected object is not a recipe: ${JSON.stringify(recipe)}`)
     }
   }
   catch (e) {

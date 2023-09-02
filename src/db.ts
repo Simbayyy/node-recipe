@@ -80,31 +80,35 @@ export async function insertRecipe(unsanitized_recipe: any) {
 }
 
 export async function selectRecipe (recipeId: number) {
-    const query = `SELECT * \
-        FROM ${process.env.DB_ENV == 'test' ? "test_" :""}recipe \
-        WHERE recipe_id = $1`
-    const values = [recipeId]
+    try 
+        {const query = `SELECT * \
+            FROM ${process.env.DB_ENV == 'test' ? "test_" :""}recipe \
+            WHERE recipe_id = $1`
+        const values = [recipeId]
 
-    const client = await pool.connect();
-    const result = await client.query(query, values);
+        const result = await pool.query(query, values);
 
-    if (result.rows.length != 0){
-        let ingredients_id = await pool.query(`SELECT * FROM ingredient \
-            WHERE ingredient_id IN
-            (SELECT ingredient_id \
-            FROM ${process.env.DB_ENV == 'test' ? "test_" :""}recipe_ingredient \
-            WHERE recipe_id = $1);`, [recipeId])
-        let recipe:Recipe = {
-            name: result.rows[0].name,
-            url: result.rows[0].url,
-            time: {time:0,unit:'g'},
-            ingredients: ingredients_id.rows
-        } 
-        console.log(JSON.stringify(recipe))
-        return recipe
+        if (result.rows.length != 0){
+            let ingredients_id = await pool.query(`SELECT i.name, ri.amount, ri.unit \
+                FROM ${process.env.DB_ENV == 'test' ? "test_" :""}ingredient AS i \
+                INNER JOIN ${process.env.DB_ENV == 'test' ? "test_" :""}recipe_ingredient AS ri\
+                ON ri.recipe_id = $1\
+                WHERE i.ingredient_id = ri.ingredient_id;`, [recipeId])
+            let recipe:Recipe = {
+                name: result.rows[0].name,
+                url: result.rows[0].url,
+                time: {time:0,unit:'g'},
+                ingredients: ingredients_id.rows
+            } 
+            return recipe
+        } else {
+            throw Error("No recipe found")
+        }
+    } catch (e) {
+        logger.log({
+            level:'error',
+            message:`Could not fetch recipe\nError: ${e}`
+        })
+        return {}
     }
-
-    // Release the client back to the pool
-    client.release();
-    return result
 } 

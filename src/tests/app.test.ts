@@ -3,7 +3,7 @@ import request from 'supertest'
 import {app} from '../app'
 import { Recipe, isRecipe } from '../types'
 import {pool, insertRecipe} from '../db' 
-import { lintIngredient } from '../functions'
+import { lintIngredient, sanitizeRecipe } from '../functions'
 
 beforeAll(async () => {
     if (process.env.DB_ENV == 'test') {
@@ -42,7 +42,9 @@ test('GET /recipes/recipeId', async () => {
         const response = await request(app)
             .get('/recipes/1')
             .set('Accept', 'application/json')
+            .set('Content-Type', 'application/json')
         expect(response.status).toEqual(200)
+        expect(response.body).toBe(sanitizeRecipe(dummyRecipe))
 
         const response2 = await request(app)
             .get('/recipes/10')

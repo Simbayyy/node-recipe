@@ -115,30 +115,37 @@ function insertRecipe(unsanitized_recipe) {
 exports.insertRecipe = insertRecipe;
 function selectRecipe(recipeId) {
     return __awaiter(this, void 0, void 0, function* () {
-        const query = `SELECT * \
-        FROM ${process.env.DB_ENV == 'test' ? "test_" : ""}recipe \
-        WHERE recipe_id = $1`;
-        const values = [recipeId];
-        const client = yield exports.pool.connect();
-        const result = yield client.query(query, values);
-        if (result.rows.length != 0) {
-            let ingredients_id = yield exports.pool.query(`SELECT * FROM ingredient \
-            WHERE ingredient_id IN
-            (SELECT ingredient_id \
-            FROM ${process.env.DB_ENV == 'test' ? "test_" : ""}recipe_ingredient \
-            WHERE recipe_id = $1);`, [recipeId]);
-            let recipe = {
-                name: result.rows[0].name,
-                url: result.rows[0].url,
-                time: { time: 0, unit: 'g' },
-                ingredients: ingredients_id.rows
-            };
-            console.log(JSON.stringify(recipe));
-            return recipe;
+        try {
+            const query = `SELECT * \
+            FROM ${process.env.DB_ENV == 'test' ? "test_" : ""}recipe \
+            WHERE recipe_id = $1`;
+            const values = [recipeId];
+            const result = yield exports.pool.query(query, values);
+            if (result.rows.length != 0) {
+                let ingredients_id = yield exports.pool.query(`SELECT i.name, ri.amount, ri.unit \
+                FROM ${process.env.DB_ENV == 'test' ? "test_" : ""}ingredient AS i \
+                INNER JOIN ${process.env.DB_ENV == 'test' ? "test_" : ""}recipe_ingredient AS ri\
+                ON ri.recipe_id = $1\
+                WHERE i.ingredient_id = ri.ingredient_id;`, [recipeId]);
+                let recipe = {
+                    name: result.rows[0].name,
+                    url: result.rows[0].url,
+                    time: { time: 0, unit: 'g' },
+                    ingredients: ingredients_id.rows
+                };
+                return recipe;
+            }
+            else {
+                throw Error("No recipe found");
+            }
         }
-        // Release the client back to the pool
-        client.release();
-        return result;
+        catch (e) {
+            app_1.logger.log({
+                level: 'error',
+                message: `Could not fetch recipe\nError: ${e}`
+            });
+            return {};
+        }
     });
 }
 exports.selectRecipe = selectRecipe;
