@@ -183,21 +183,21 @@ function addTranslatedName(ingredientId) {
 exports.addTranslatedName = addTranslatedName;
 function addFoodData(ingredientId) {
     return __awaiter(this, void 0, void 0, function* () {
-        let ingredientName = yield exports.pool.query(`SELECT name FROM ${exports.test_}ingredient WHERE ingredient_id = $1`, [ingredientId]);
+        let ingredientName = yield exports.pool.query(`SELECT name_en FROM ${exports.test_}ingredient WHERE ingredient_id = $1`, [ingredientId]);
         if (ingredientName.rows.length != 0) {
-            let name = ingredientName.rows[0].name;
-            let fdc_response = yield (0, functions_1.getFoodData)(name);
+            let name_en = ingredientName.rows[0].name_en;
+            let fdc_response = yield (0, functions_1.getFoodData)(name_en);
             try {
                 let insert_food = yield exports.pool.query(`UPDATE ${exports.test_}ingredient SET fdc_id = $1 WHERE ingredient_id = $2`, [fdc_response.foods[0].fcdId, ingredientId]);
                 logger_1.logger.log({
                     level: 'info',
-                    message: `Found fdc dßata for ingredient ${name}`
+                    message: `Found fdc dßata for ingredient ${name_en}`
                 });
             }
             catch (e) {
                 logger_1.logger.log({
                     level: 'info',
-                    message: `Could not find fdc data for ingredient ${name}\nError: ${e}`
+                    message: `Could not find fdc data for ingredient ${name_en}\nError: ${e}`
                 });
             }
             return fdc_response;

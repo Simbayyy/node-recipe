@@ -147,20 +147,20 @@ export async function addTranslatedName (ingredientId: number) {
 } 
 
 export async function addFoodData (ingredientId: number) {
-    let ingredientName = await pool.query(`SELECT name FROM ${test_}ingredient WHERE ingredient_id = $1`, [ingredientId])
+    let ingredientName = await pool.query(`SELECT name_en FROM ${test_}ingredient WHERE ingredient_id = $1`, [ingredientId])
     if (ingredientName.rows.length != 0) {
-        let name = ingredientName.rows[0].name
-        let fdc_response = await getFoodData(name)
+        let name_en = ingredientName.rows[0].name_en
+        let fdc_response = await getFoodData(name_en)
         try {
             let insert_food = await pool.query(`UPDATE ${test_}ingredient SET fdc_id = $1 WHERE ingredient_id = $2`, [fdc_response.foods[0].fcdId,ingredientId])
             logger.log({
                 level:'info',
-                message:`Found fdc dßata for ingredient ${name}`
+                message:`Found fdc dßata for ingredient ${name_en}`
             })
         } catch (e) {
             logger.log({
                 level:'info',
-                message:`Could not find fdc data for ingredient ${name}\nError: ${e}`
+                message:`Could not find fdc data for ingredient ${name_en}\nError: ${e}`
             })
         }
         return fdc_response

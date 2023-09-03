@@ -51,7 +51,7 @@ export const dummyRecipe2 = {
     },
     ingredients: [
         {
-            name: "macaroni",
+            name: "eau",
             amount: 100,
             unit: "g"
         }
