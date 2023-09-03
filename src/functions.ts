@@ -1,7 +1,8 @@
+import { logger } from "./logger";
 import { Ingredient, Recipe } from "./types";
+import deepl from 'deepl-node'
 
 export function sanitizeRecipe(recipe: Recipe): Recipe {
-
     let newrecipe: Recipe = {
         name: recipe.name,
         url: recipe.url,
@@ -32,7 +33,10 @@ export function lintIngredient(ingredient: Ingredient): Ingredient {
     return newingredient
 }
 
-export function translateIngredient(name: string): string {
-    
-    return name 
+const authKey = process.env.DEEPL_KEY || ""
+const translator = new deepl.Translator(authKey);
+
+export async function translateIngredient(name: string) {
+    const result = await translator.translateText(name, "fr", 'en-US')
+    return result.text
 }

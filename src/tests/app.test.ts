@@ -3,7 +3,7 @@ import request from 'supertest'
 import {app} from '../app'
 import { Recipe, isRecipe } from '../types'
 import {pool, insertRecipe} from '../db' 
-import { lintIngredient, sanitizeRecipe } from '../functions'
+import { lintIngredient, sanitizeRecipe, translateIngredient } from '../functions'
 
 beforeAll(async () => {
     if (process.env.DB_ENV == 'test') {
@@ -43,6 +43,11 @@ afterAll(async () => {
         // Cleanup created db tables
         await pool.query("DROP TABLE IF EXISTS test_recipe, test_ingredient, test_recipe_ingredient, test_recipe_time")
     }
+})
+
+test('Translation', async () => {
+    let bread = await translateIngredient('pain')
+    expect(bread).toEqual('bread')
 })
 
 test('GET /recipes/recipeId', async () => {
