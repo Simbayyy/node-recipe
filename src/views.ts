@@ -5,7 +5,7 @@ import { sanitizeRecipe } from './functions';
 import {Recipe, isRecipe} from './types'
 
 export function home (_: any, res: any) {
-  res.render('home.hbs')
+  res.render('home.hbs', {message:"This was compiled on-site!"})
   logger.log({
     level: 'info',
     message: `Home loaded`
