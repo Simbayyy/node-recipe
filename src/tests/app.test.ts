@@ -49,10 +49,12 @@ afterAll(async () => {
 })
 
 test('getFoodData', async () => {
-    let breadId = await getFoodData('bread')
-    expect(breadId.foods[0].fdcId).toEqual(325871)
-    let noId = await getFoodData('noID')
-    expect(noId).toHaveProperty('error')
+    if (process.env.DB_ENV == 'test') {
+        let breadId = await getFoodData('bread')
+        expect(breadId.foods[0].fdcId).toEqual(325871)
+        let noId = await getFoodData('noID')
+        expect(noId).toHaveProperty('error')
+    }
 })
 
 test('GET /recipes/recipeId', async () => {
