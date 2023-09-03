@@ -32,7 +32,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.translateIngredient = exports.lintIngredient = exports.sortIngredients = exports.sanitizeRecipe = void 0;
+exports.getFoodData = exports.translateIngredient = exports.lintIngredient = exports.sortIngredients = exports.sanitizeRecipe = void 0;
+const logger_1 = require("./logger");
 const deepl = __importStar(require("deepl-node"));
 function sanitizeRecipe(recipe) {
     let newrecipe = {
@@ -66,6 +67,7 @@ function lintIngredient(ingredient) {
     return newingredient;
 }
 exports.lintIngredient = lintIngredient;
+// Setup DeepL API access
 const authKey = process.env.DEEPL_KEY || "no_key";
 const translator = new deepl.Translator(authKey);
 function translateIngredient(name) {
@@ -75,3 +77,36 @@ function translateIngredient(name) {
     });
 }
 exports.translateIngredient = translateIngredient;
+// Setup FoodData Central access
+function getFoodData(name) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let body = {
+            query: name,
+            dataType: [
+                "Foundation",
+            ],
+            pageSize: 1,
+            pageNumber: 1
+        };
+        let request = {
+            headers: {
+                "Content-Type": "application/json",
+                "X-Api-Key": process.env.FOOD_DATA_KEY || "no_key"
+            },
+            method: 'POST',
+            body: JSON.stringify(body)
+        };
+        let url = "https://api.nal.usda.gov/fdc/v1/foods/search";
+        return fetch(url, request).then((res) => { return res.json(); }).then((res) => {
+            logger_1.logger.log({ level: "info", message: `Found id for ${name}: ${res.foods[0].fdcId}` });
+            return res;
+        }).catch((e) => {
+            logger_1.logger.log({
+                level: 'error',
+                message: `Finding ID for ${name} went wrong\n${e}`
+            });
+            return { error: "Could not get ID" };
+        });
+    });
+}
+exports.getFoodData = getFoodData;

@@ -15,14 +15,14 @@ logger_1.logger.log({
     level: 'info',
     message: `Deployment of app in ${process.env.APP_NAME}, at ${console.time()}`
 });
-function add_english_column() {
+function add_fdc_id_column() {
     return __awaiter(this, void 0, void 0, function* () {
         const exists = yield db_1.pool.query("SELECT column_name \
     FROM information_schema.columns\
-    WHERE table_name='ingredient' and column_name='name_en';");
+    WHERE table_name='ingredient' and column_name='fdc_id';");
         if (exists.rows.length == 0) {
             const add_column = yield db_1.pool.query("ALTER TABLE ingredient \
-            ADD COLUMN name_en VARCHAR(200)");
+            ADD COLUMN fdc_id INT");
             return 'added';
         }
         else {
@@ -30,7 +30,7 @@ function add_english_column() {
         }
     });
 }
-add_english_column().then((res) => logger_1.logger.log({
+add_fdc_id_column().then((res) => logger_1.logger.log({
     level: 'info',
-    message: `English name column ${res}`
+    message: `fdc id name column ${res}`
 }));

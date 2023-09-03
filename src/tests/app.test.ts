@@ -3,7 +3,7 @@ import request from 'supertest'
 import {app} from '../app'
 import { Recipe, isRecipe } from '../types'
 import {pool, insertRecipe, addTranslatedName} from '../db' 
-import { lintIngredient, sanitizeRecipe, translateIngredient } from '../functions'
+import { getFoodData, lintIngredient, sanitizeRecipe, translateIngredient } from '../functions'
 import { dummyNotRecipe, dummyRecipe, dummyRecipe2, dummyResponse } from './dummy_values'
 
 beforeAll(async () => {
@@ -46,6 +46,12 @@ afterAll(async () => {
     }
 })
 
+test('getFoodData', async () => {
+    let breadId = await getFoodData('bread')
+    expect(breadId.foods[0].fdcId).toEqual(325871)
+    let noId = await getFoodData('noID')
+    expect(noId).toHaveProperty('error')
+})
 
 test('GET /recipes/recipeId', async () => {
     if (process.env.DB_ENV == 'test') {

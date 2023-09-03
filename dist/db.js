@@ -32,7 +32,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.addTranslatedName = exports.selectRecipe = exports.insertRecipe = exports.pool = exports.test_ = void 0;
+exports.addFoodData = exports.addTranslatedName = exports.selectRecipe = exports.insertRecipe = exports.pool = exports.test_ = void 0;
 const pg_1 = require("pg");
 const types_1 = require("./types");
 const dotenv = __importStar(require("dotenv"));
@@ -90,6 +90,7 @@ function insertRecipe(unsanitized_recipe) {
                         message: `Successfully inserted ingredient ${index} in the database with id ${ingredient_id}`
                     });
                     yield addTranslatedName(ingredient_id);
+                    yield addFoodData(ingredient_id);
                     return ingredient_id;
                 })));
                 logger_1.logger.log({
@@ -180,3 +181,27 @@ function addTranslatedName(ingredientId) {
     });
 }
 exports.addTranslatedName = addTranslatedName;
+function addFoodData(ingredientId) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let ingredientName = yield exports.pool.query(`SELECT name FROM ${exports.test_}ingredient WHERE ingredient_id = $1`, [ingredientId]);
+        if (ingredientName.rows.length != 0) {
+            let name = ingredientName.rows[0].name;
+            let fdc_response = yield (0, functions_1.getFoodData)(name);
+            try {
+                let insert_food = yield exports.pool.query(`UPDATE ${exports.test_}ingredient SET fdc_id = $1 WHERE ingredient_id = $2`, [fdc_response.foods[0].fcdId, ingredientId]);
+                logger_1.logger.log({
+                    level: 'info',
+                    message: `Found fdc dßata for ingredient ${name}`
+                });
+            }
+            catch (e) {
+                logger_1.logger.log({
+                    level: 'info',
+                    message: `Could not find fdc data for ingredient ${name}\nError: ${e}`
+                });
+            }
+            return fdc_response;
+        }
+    });
+}
+exports.addFoodData = addFoodData;

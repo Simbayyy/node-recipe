@@ -2,7 +2,7 @@ import { Pool } from 'pg'
 import { Recipe, isRecipe } from './types'
 import * as dotenv from 'dotenv'
 import { logger } from './logger'
-import { sanitizeRecipe, sortIngredients, translateIngredient } from './functions'
+import { getFoodData, sanitizeRecipe, sortIngredients, translateIngredient } from './functions'
 
 // Load environment variables
 dotenv.config({path: process.env.NODE_ENV == 'production' ? '.env' : '.env.development.local'})
@@ -61,6 +61,7 @@ export async function insertRecipe(unsanitized_recipe: any) {
                     message: `Successfully inserted ingredient ${index} in the database with id ${ingredient_id}`            
                 })
                 await addTranslatedName(ingredient_id)
+                await addFoodData(ingredient_id)
                 return ingredient_id
             }))
             logger.log({
@@ -142,5 +143,26 @@ export async function addTranslatedName (ingredientId: number) {
             message:`Translated ${name} to ${name_en}`
         })
         return name_en
+    }
+} 
+
+export async function addFoodData (ingredientId: number) {
+    let ingredientName = await pool.query(`SELECT name FROM ${test_}ingredient WHERE ingredient_id = $1`, [ingredientId])
+    if (ingredientName.rows.length != 0) {
+        let name = ingredientName.rows[0].name
+        let fdc_response = await getFoodData(name)
+        try {
+            let insert_food = await pool.query(`UPDATE ${test_}ingredient SET fdc_id = $1 WHERE ingredient_id = $2`, [fdc_response.foods[0].fcdId,ingredientId])
+            logger.log({
+                level:'info',
+                message:`Found fdc dßata for ingredient ${name}`
+            })
+        } catch (e) {
+            logger.log({
+                level:'info',
+                message:`Could not find fdc data for ingredient ${name}\nError: ${e}`
+            })
+        }
+        return fdc_response
     }
 } 
