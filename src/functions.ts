@@ -12,9 +12,13 @@ export function sanitizeRecipe(recipe: Recipe): Recipe {
             index === self.findIndex((t) => (
                 t.name === value.name
             ))
-        ).map(lintIngredient)
+        ).map(lintIngredient).sort(sortIngredients)
     }
     return newrecipe
+}
+
+export function sortIngredients (a:Ingredient ,b:Ingredient) {
+    return a.name > b.name ? -1 : 1
 }
 
 export function lintIngredient(ingredient: Ingredient): Ingredient {
@@ -28,7 +32,8 @@ export function lintIngredient(ingredient: Ingredient): Ingredient {
             .replace(/ $/, "")
             ,
         amount: ingredient.amount,
-        unit: ingredient.unit
+        unit: ingredient.unit,
+        name_en: ingredient.name_en ? ingredient.name_en : undefined
     }
     return newingredient
 }

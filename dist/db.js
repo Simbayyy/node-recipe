@@ -32,7 +32,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.selectRecipe = exports.insertRecipe = exports.pool = exports.test_ = void 0;
+exports.addTranslatedName = exports.selectRecipe = exports.insertRecipe = exports.pool = exports.test_ = void 0;
 const pg_1 = require("pg");
 const types_1 = require("./types");
 const dotenv = __importStar(require("dotenv"));
@@ -89,6 +89,7 @@ function insertRecipe(unsanitized_recipe) {
                         level: 'info',
                         message: `Successfully inserted ingredient ${index} in the database with id ${ingredient_id}`
                     });
+                    yield addTranslatedName(ingredient_id);
                     return ingredient_id;
                 })));
                 logger_1.logger.log({
@@ -133,13 +134,13 @@ function selectRecipe(recipeId) {
             const values = [recipeId];
             const result = yield exports.pool.query(query, values);
             if (result.rows.length != 0) {
-                let ingredients_id = yield exports.pool.query(`SELECT i.name, ri.amount, ri.unit \
-                FROM ${process.env.DB_ENV == 'test' ? "test_" : ""}ingredient AS i \
-                INNER JOIN ${process.env.DB_ENV == 'test' ? "test_" : ""}recipe_ingredient AS ri\
+                let ingredients_id = yield exports.pool.query(`SELECT i.name, ri.amount, ri.unit, i.name_en \
+                FROM ${exports.test_}ingredient AS i \
+                INNER JOIN ${exports.test_}recipe_ingredient AS ri\
                 ON ri.recipe_id = $1\
                 WHERE i.ingredient_id = ri.ingredient_id;`, [recipeId]);
                 let time = yield exports.pool.query(`SELECT time, unit \
-                FROM ${process.env.DB_ENV == 'test' ? "test_" : ""}recipe_time \
+                FROM ${exports.test_}recipe_time \
                 WHERE recipe_id = $1;`, [recipeId]);
                 let recipe = {
                     name: result.rows[0].name,
@@ -163,3 +164,19 @@ function selectRecipe(recipeId) {
     });
 }
 exports.selectRecipe = selectRecipe;
+function addTranslatedName(ingredientId) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let ingredientName = yield exports.pool.query(`SELECT name FROM ${exports.test_}ingredient WHERE ingredient_id = $1`, [ingredientId]);
+        if (ingredientName.rows.length != 0) {
+            let name = ingredientName.rows[0].name;
+            let name_en = yield (0, functions_1.translateIngredient)(name);
+            let insert_en = yield exports.pool.query(`UPDATE ${exports.test_}ingredient SET name_en = $1 WHERE ingredient_id = $2`, [name_en, ingredientId]);
+            logger_1.logger.log({
+                level: 'info',
+                message: `Translated ${name} to ${name_en}`
+            });
+            return name_en;
+        }
+    });
+}
+exports.addTranslatedName = addTranslatedName;

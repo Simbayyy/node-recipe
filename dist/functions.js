@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.translateIngredient = exports.lintIngredient = exports.sanitizeRecipe = void 0;
+exports.translateIngredient = exports.lintIngredient = exports.sortIngredients = exports.sanitizeRecipe = void 0;
 const deepl_node_1 = __importDefault(require("deepl-node"));
 function sanitizeRecipe(recipe) {
     let newrecipe = {
@@ -21,11 +21,15 @@ function sanitizeRecipe(recipe) {
         time: recipe.time,
         ingredients: recipe.ingredients.filter((value, index, self) => 
         // Remove ingredients with duplicate names
-        index === self.findIndex((t) => (t.name === value.name))).map(lintIngredient)
+        index === self.findIndex((t) => (t.name === value.name))).map(lintIngredient).sort(sortIngredients)
     };
     return newrecipe;
 }
 exports.sanitizeRecipe = sanitizeRecipe;
+function sortIngredients(a, b) {
+    return a.name > b.name ? -1 : 1;
+}
+exports.sortIngredients = sortIngredients;
 function lintIngredient(ingredient) {
     let newingredient = {
         name: ingredient.name
@@ -36,7 +40,8 @@ function lintIngredient(ingredient) {
             .replace(/^ /, "")
             .replace(/ $/, ""),
         amount: ingredient.amount,
-        unit: ingredient.unit
+        unit: ingredient.unit,
+        name_en: ingredient.name_en ? ingredient.name_en : undefined
     };
     return newingredient;
 }

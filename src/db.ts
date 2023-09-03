@@ -2,7 +2,7 @@ import { Pool } from 'pg'
 import { Recipe, isRecipe } from './types'
 import * as dotenv from 'dotenv'
 import { logger } from './logger'
-import { sanitizeRecipe } from './functions'
+import { sanitizeRecipe, sortIngredients, translateIngredient } from './functions'
 
 // Load environment variables
 dotenv.config({path: process.env.NODE_ENV == 'production' ? '.env' : '.env.development.local'})
@@ -60,6 +60,7 @@ export async function insertRecipe(unsanitized_recipe: any) {
                     level: 'info',
                     message: `Successfully inserted ingredient ${index} in the database with id ${ingredient_id}`            
                 })
+                await addTranslatedName(ingredient_id)
                 return ingredient_id
             }))
             logger.log({
@@ -103,13 +104,13 @@ export async function selectRecipe (recipeId: number) {
         const result = await pool.query(query, values);
 
         if (result.rows.length != 0){
-            let ingredients_id = await pool.query(`SELECT i.name, ri.amount, ri.unit \
-                FROM ${process.env.DB_ENV == 'test' ? "test_" :""}ingredient AS i \
-                INNER JOIN ${process.env.DB_ENV == 'test' ? "test_" :""}recipe_ingredient AS ri\
+            let ingredients_id = await pool.query(`SELECT i.name, ri.amount, ri.unit, i.name_en \
+                FROM ${test_}ingredient AS i \
+                INNER JOIN ${test_}recipe_ingredient AS ri\
                 ON ri.recipe_id = $1\
                 WHERE i.ingredient_id = ri.ingredient_id;`, [recipeId])
             let time = await pool.query(`SELECT time, unit \
-                FROM ${process.env.DB_ENV == 'test' ? "test_" :""}recipe_time \
+                FROM ${test_}recipe_time \
                 WHERE recipe_id = $1;`, [recipeId])
             let recipe:Recipe = {
                 name: result.rows[0].name,
@@ -127,5 +128,19 @@ export async function selectRecipe (recipeId: number) {
             message:`Could not fetch recipe\nError: ${e}`
         })
         return {}
+    }
+} 
+
+export async function addTranslatedName (ingredientId: number) {
+    let ingredientName = await pool.query(`SELECT name FROM ${test_}ingredient WHERE ingredient_id = $1`, [ingredientId])
+    if (ingredientName.rows.length != 0) {
+        let name = ingredientName.rows[0].name
+        let name_en = await translateIngredient(name)
+        let insert_en = await pool.query(`UPDATE ${test_}ingredient SET name_en = $1 WHERE ingredient_id = $2`, [name_en,ingredientId])
+        logger.log({
+            level:'info',
+            message:`Translated ${name} to ${name_en}`
+        })
+        return name_en
     }
 } 
