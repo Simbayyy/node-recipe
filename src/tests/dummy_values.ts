@@ -31,13 +31,17 @@ export const dummyResponse = {
             name: "pain",
             amount: 100,
             unit: "g",
-            name_en:"bread"
+            name_en:"bread",
+            fdc_id: 325871,
+            high_confidence: true,
         },
         {
             name: "eau",
             amount: 200,
             unit: "g",
-            name_en:"water"
+            name_en:"water",
+            fdc_id: 334194,
+            high_confidence: true,
         }
     ]
 }

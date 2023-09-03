@@ -108,18 +108,18 @@ test('GET /', async () => {
 
 
 test('lintIngredients', () => {
-    expect(lintIngredient({ name: "Tomatoes", amount: 3, unit: "cups" }))
-        .toStrictEqual({ name: "tomatoes", amount: 3, unit: "cups", name_en:undefined })
+    expect(lintIngredient({ name: "Tomatoes", amount: 3.3, unit: "cups" }))
+        .toStrictEqual({ name: "tomatoes", amount: 3, unit: "cups", name_en:undefined, fdc_id:undefined, high_confidence:undefined })
     expect(lintIngredient({ name: " Onions ", amount: 3, unit: "cups" }))
-        .toStrictEqual({ name: "onions", amount: 3, unit: "cups", name_en:undefined })
+        .toStrictEqual({ name: "onions", amount: 3, unit: "cups", name_en:undefined, fdc_id:undefined, high_confidence:undefined })
     expect(lintIngredient({ name: "Bell Peppers (Red)", amount: 3, unit: "cups" }))
-        .toStrictEqual({ name: "bell peppers", amount: 3, unit: "cups", name_en:undefined })
+        .toStrictEqual({ name: "bell peppers", amount: 3, unit: "cups", name_en:undefined, fdc_id:undefined, high_confidence:undefined })
     expect(lintIngredient({ name: "Les onions ", amount: 3, unit: "cups" }))
-        .toStrictEqual({ name: "onions", amount: 3, unit: "cups", name_en:undefined })
+        .toStrictEqual({ name: "onions", amount: 3, unit: "cups", name_en:undefined, fdc_id:undefined, high_confidence:undefined })
     expect(lintIngredient({ name: "D'Onions ", amount: 3, unit: "cups" }))
-        .toStrictEqual({ name: "onions", amount: 3, unit: "cups", name_en:undefined })
+        .toStrictEqual({ name: "onions", amount: 3, unit: "cups", name_en:undefined, fdc_id:undefined, high_confidence:undefined })
     expect(lintIngredient({ name: "", amount: 3, unit: "cups" }))
-        .toStrictEqual({ name: "", amount: 3, unit: "cups", name_en:undefined })
+        .toStrictEqual({ name: "", amount: 3, unit: "cups", name_en:undefined, fdc_id:undefined, high_confidence:undefined })
 })
 
 test('isRecipe', () => {
