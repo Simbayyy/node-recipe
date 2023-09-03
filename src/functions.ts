@@ -1,6 +1,6 @@
 import { logger } from "./logger";
 import { Ingredient, Recipe } from "./types";
-import deepl from 'deepl-node'
+import * as deepl from 'deepl-node'
 
 export function sanitizeRecipe(recipe: Recipe): Recipe {
     let newrecipe: Recipe = {

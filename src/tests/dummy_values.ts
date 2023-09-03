@@ -12,7 +12,7 @@ export const dummyRecipe = {
             unit: "g"
         },
         {
-            name: "macaroni",
+            name: "eau",
             amount: 200,
             unit: "g"
         }
@@ -34,10 +34,10 @@ export const dummyResponse = {
             name_en:"bread"
         },
         {
-            name: "macaroni",
+            name: "eau",
             amount: 200,
             unit: "g",
-            name_en:"macaroni"
+            name_en:"water"
         }
     ]
 }

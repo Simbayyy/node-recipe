@@ -118,7 +118,7 @@ export async function selectRecipe (recipeId: number) {
                 time: {time:time.rows[0].time,unit:time.rows[0].unit},
                 ingredients: ingredients_id.rows
             } 
-            return recipe
+            return sanitizeRecipe(recipe)
         } else {
             throw Error("No recipe found")
         }

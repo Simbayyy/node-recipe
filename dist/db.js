@@ -148,7 +148,7 @@ function selectRecipe(recipeId) {
                     time: { time: time.rows[0].time, unit: time.rows[0].unit },
                     ingredients: ingredients_id.rows
                 };
-                return recipe;
+                return (0, functions_1.sanitizeRecipe)(recipe);
             }
             else {
                 throw Error("No recipe found");
