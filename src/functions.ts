@@ -38,7 +38,7 @@ export function lintIngredient(ingredient: Ingredient): Ingredient {
     return newingredient
 }
 
-const authKey = process.env.DEEPL_KEY || ""
+const authKey = process.env.DEEPL_KEY || "no_key"
 const translator = new deepl.Translator(authKey);
 
 export async function translateIngredient(name: string) {
