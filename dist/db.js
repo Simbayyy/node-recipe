@@ -191,13 +191,13 @@ function addFoodData(ingredientId) {
                 let insert_food = yield exports.pool.query(`UPDATE ${exports.test_}ingredient SET fdc_id = $1 WHERE ingredient_id = $2`, [fdc_response.foods[0].fcdId, ingredientId]);
                 logger_1.logger.log({
                     level: 'info',
-                    message: `Found fdc dßata for ingredient ${name_en}`
+                    message: `Found fdc data for ingredient ${name_en}`
                 });
             }
             catch (e) {
                 logger_1.logger.log({
                     level: 'info',
-                    message: `Could not find fdc data for ingredient ${name_en}\nError: ${e}`
+                    message: `Could not find fdc data for ingredient ${name_en}\nReceived:${fdc_response === null || fdc_response === void 0 ? void 0 : fdc_response.error} with ${fdc_response.query} querying\nError: ${e}`
                 });
             }
             return fdc_response;

@@ -49,31 +49,42 @@ export async function translateIngredient(name: string) {
 
 // Setup FoodData Central access
 export async function getFoodData (name: string) {
-    let body = {
-        query: name,
-        dataType:[
-            "Foundation",
-        ],
-        pageSize:1,
-        pageNumber:1
-    }
-    let request = {
-        headers: {
-            "Content-Type":"application/json",
-            "X-Api-Key": process.env.FOOD_DATA_KEY || "no_key"
-        },
-        method:'POST',
-        body:JSON.stringify(body)
-    }
-    let url = "https://api.nal.usda.gov/fdc/v1/foods/search"
-    return fetch(url, request).then((res) => {return res.json()}).then((res)=>{
-        logger.log({level:"info",message:`Found id for ${name}: ${res.foods[0].fdcId}`})
-        return res
-    }).catch((e) => {
-        logger.log({
-            level:'error',
-            message:`Finding ID for ${name} went wrong\n${e}`
-        })
-        return {error:"Could not get ID"}
-    })
+    let response: any = {status:"Looking for ID", error:"", query:'strict'};
+    let dataTypes = ["Foundation" ,"Survey (FNDDS)", "SR Legacy"]
+    
+    for (let query of [`+${name}`.replace(/ /, " +"),name])
+    {   
+        for (let dataType of dataTypes)
+            if (response.status == "Looking for ID"){
+                let body = {
+                    query: query,
+                    dataType:[
+                        dataType,
+                    ],
+                    pageSize:1,
+                    pageNumber:1
+                }
+                let request = {
+                    headers: {
+                        "Content-Type":"application/json",
+                        "X-Api-Key": process.env.FOOD_DATA_KEY || "no_key"
+                    },
+                    method:'POST',
+                    body:JSON.stringify(body)
+                }
+                let url = "https://api.nal.usda.gov/fdc/v1/foods/search"
+                await fetch(url, request).then((res) => {return res.json()}).then((res)=>{
+                    logger.log({level:"info",message:`Found id for ${name} in ${dataType}, ${response.query}: ${res.foods[0].fdcId}`})
+                    response = res
+                }).catch((e) => {
+                    response.error += `Could not find ID in ${dataType}\n`
+                })
+            }
+            if (query == name) {
+                response.query = 'loose'
+            } else {
+                response.query = 'strict'
+            }
+        }
+    return response
 }

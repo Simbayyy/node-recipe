@@ -155,12 +155,12 @@ export async function addFoodData (ingredientId: number) {
             let insert_food = await pool.query(`UPDATE ${test_}ingredient SET fdc_id = $1 WHERE ingredient_id = $2`, [fdc_response.foods[0].fcdId,ingredientId])
             logger.log({
                 level:'info',
-                message:`Found fdc dßata for ingredient ${name_en}`
+                message:`Found fdc data for ingredient ${name_en}`
             })
         } catch (e) {
             logger.log({
                 level:'info',
-                message:`Could not find fdc data for ingredient ${name_en}\nError: ${e}`
+                message:`Could not find fdc data for ingredient ${name_en}\nReceived:${fdc_response?.error} with ${fdc_response.query} querying\nError: ${e}`
             })
         }
         return fdc_response
