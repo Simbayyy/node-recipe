@@ -32,7 +32,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.translateIngredient = exports.lintIngredient = exports.sortIngredients = exports.sanitizeRecipe = void 0;
+exports.getFoodData = exports.translateIngredient = exports.lintIngredient = exports.sortIngredients = exports.sanitizeRecipe = void 0;
+const logger_1 = require("./logger");
 const deepl = __importStar(require("deepl-node"));
 function sanitizeRecipe(recipe) {
     let newrecipe = {
@@ -51,6 +52,7 @@ function sortIngredients(a, b) {
 }
 exports.sortIngredients = sortIngredients;
 function lintIngredient(ingredient) {
+    var _a, _b, _c;
     let newingredient = {
         name: ingredient.name
             .replace(/\(.*/, "")
@@ -59,13 +61,16 @@ function lintIngredient(ingredient) {
             .replace(/^ ?(d|l|s)'/, "")
             .replace(/^ /, "")
             .replace(/ $/, ""),
-        amount: ingredient.amount,
+        amount: Math.trunc(ingredient.amount),
         unit: ingredient.unit,
-        name_en: ingredient.name_en ? ingredient.name_en : undefined
+        name_en: (_a = ingredient.name_en) !== null && _a !== void 0 ? _a : undefined,
+        fdc_id: (_b = ingredient.fdc_id) !== null && _b !== void 0 ? _b : undefined,
+        high_confidence: (_c = ingredient.high_confidence) !== null && _c !== void 0 ? _c : undefined
     };
     return newingredient;
 }
 exports.lintIngredient = lintIngredient;
+// Setup DeepL API access
 const authKey = process.env.DEEPL_KEY || "no_key";
 const translator = new deepl.Translator(authKey);
 function translateIngredient(name) {
@@ -75,3 +80,46 @@ function translateIngredient(name) {
     });
 }
 exports.translateIngredient = translateIngredient;
+// Setup FoodData Central access
+function getFoodData(name) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let response = { status: "Looking for ID", error: "", query: 'strict' };
+        let dataTypes = ["Foundation", "Survey (FNDDS)", "SR Legacy"];
+        for (let query of [`+${name}`.replace(/ /, " +"), name]) {
+            for (let dataType of dataTypes)
+                if (response.status == "Looking for ID") {
+                    let body = {
+                        query: query,
+                        dataType: [
+                            dataType,
+                        ],
+                        pageSize: 1,
+                        pageNumber: 1
+                    };
+                    let request = {
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-Api-Key": process.env.FOOD_DATA_KEY || "no_key"
+                        },
+                        method: 'POST',
+                        body: JSON.stringify(body)
+                    };
+                    let url = "https://api.nal.usda.gov/fdc/v1/foods/search";
+                    yield fetch(url, request).then((res) => { return res.json(); }).then((res) => {
+                        logger_1.logger.log({ level: "info", message: `Found id for ${name} in ${dataType}, ${response.query}: ${res.foods[0].fdcId}` });
+                        response = res;
+                    }).catch((e) => {
+                        response.error += `Could not find ID in ${dataType}\n`;
+                    });
+                    if (query == name) {
+                        response.query = 'loose';
+                    }
+                    else {
+                        response.query = 'strict';
+                    }
+                }
+        }
+        return response;
+    });
+}
+exports.getFoodData = getFoodData;

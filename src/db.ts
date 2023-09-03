@@ -2,7 +2,7 @@ import { Pool } from 'pg'
 import { Recipe, isRecipe } from './types'
 import * as dotenv from 'dotenv'
 import { logger } from './logger'
-import { sanitizeRecipe, sortIngredients, translateIngredient } from './functions'
+import { getFoodData, sanitizeRecipe, sortIngredients, translateIngredient } from './functions'
 
 // Load environment variables
 dotenv.config({path: process.env.NODE_ENV == 'production' ? '.env' : '.env.development.local'})
@@ -61,6 +61,7 @@ export async function insertRecipe(unsanitized_recipe: any) {
                     message: `Successfully inserted ingredient ${index} in the database with id ${ingredient_id}`            
                 })
                 await addTranslatedName(ingredient_id)
+                await addFoodData(ingredient_id)
                 return ingredient_id
             }))
             logger.log({
@@ -104,7 +105,7 @@ export async function selectRecipe (recipeId: number) {
         const result = await pool.query(query, values);
 
         if (result.rows.length != 0){
-            let ingredients_id = await pool.query(`SELECT i.name, ri.amount, ri.unit, i.name_en \
+            let ingredients_id = await pool.query(`SELECT i.name, ri.amount, ri.unit, i.name_en, i.fdc_id, i.high_confidence \
                 FROM ${test_}ingredient AS i \
                 INNER JOIN ${test_}recipe_ingredient AS ri\
                 ON ri.recipe_id = $1\
@@ -142,5 +143,30 @@ export async function addTranslatedName (ingredientId: number) {
             message:`Translated ${name} to ${name_en}`
         })
         return name_en
+    }
+} 
+
+export async function addFoodData (ingredientId: number) {
+    let ingredientName = await pool.query(`SELECT name_en FROM ${test_}ingredient WHERE ingredient_id = $1`, [ingredientId])
+    if (ingredientName.rows.length != 0) {
+        let name_en = ingredientName.rows[0].name_en
+        let fdc_response = await getFoodData(name_en)
+        try {
+            let insert_food = await pool.query(`UPDATE ${test_}ingredient SET fdc_id = $1 WHERE ingredient_id = $2`, [fdc_response.foods[0].fdcId,ingredientId])
+            let confidence = (fdc_response.query == 'strict')
+            if (confidence) {
+                await pool.query(`UPDATE ${test_}ingredient SET high_confidence = TRUE WHERE ingredient_id = $1`, [ingredientId])
+            }
+            logger.log({
+                level:'info',
+                message:`Found and added fdc data for ingredient ${name_en}, ${confidence ? 'high' : 'low'} confidence`
+            })
+        } catch (e) {
+            logger.log({
+                level:'info',
+                message:`Could not find fdc data for ingredient ${name_en}\nReceived:${fdc_response?.error} with ${fdc_response.query} querying\nError: ${e}`
+            })
+        }
+        return fdc_response
     }
 } 

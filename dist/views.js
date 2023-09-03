@@ -51,32 +51,34 @@ function getRecipe(req, res) {
 }
 exports.getRecipe = getRecipe;
 function newRecipe(req, res) {
-    res.header("Access-Control-Allow-Origin", "*");
-    try {
-        const recipe = req.body;
-        if ((0, types_1.isRecipe)(recipe)) {
-            logger_1.logger.log({
-                level: 'info',
-                message: `New recipe ${recipe.name} detected from ${recipe.url}!\n Recipe JSON is ${JSON.stringify(recipe)}`
-            });
-            (0, db_1.insertRecipe)((0, functions_1.sanitizeRecipe)(recipe));
-            res.status(200).json(recipe);
+    return __awaiter(this, void 0, void 0, function* () {
+        res.header("Access-Control-Allow-Origin", "*");
+        try {
+            const recipe = req.body;
+            if ((0, types_1.isRecipe)(recipe)) {
+                logger_1.logger.log({
+                    level: 'info',
+                    message: `New recipe ${recipe.name} detected from ${recipe.url}!\n Recipe JSON is ${JSON.stringify(recipe)}`
+                });
+                (0, db_1.insertRecipe)((0, functions_1.sanitizeRecipe)(recipe));
+                res.status(200).json(recipe);
+            }
+            else {
+                logger_1.logger.log({
+                    level: 'error',
+                    message: `New recipe is not corresponding to the Recipe type, but rather ${req}`
+                });
+                res.status(500);
+                throw TypeError("Request body not of the Recipe type");
+            }
         }
-        else {
+        catch (e) {
             logger_1.logger.log({
                 level: 'error',
-                message: `New recipe is not corresponding to the Recipe type, but rather ${req}`
+                message: `Could not read request body in newRecipe.`
             });
-            res.status(500);
-            throw TypeError("Request body not of the Recipe type");
+            res.status(500).json({ error: "no" });
         }
-    }
-    catch (e) {
-        logger_1.logger.log({
-            level: 'error',
-            message: `Could not read request body in newRecipe.`
-        });
-        res.status(500).json({ error: "no" });
-    }
+    });
 }
 exports.newRecipe = newRecipe;

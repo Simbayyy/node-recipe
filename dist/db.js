@@ -32,7 +32,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.addTranslatedName = exports.selectRecipe = exports.insertRecipe = exports.pool = exports.test_ = void 0;
+exports.addFoodData = exports.addTranslatedName = exports.selectRecipe = exports.insertRecipe = exports.pool = exports.test_ = void 0;
 const pg_1 = require("pg");
 const types_1 = require("./types");
 const dotenv = __importStar(require("dotenv"));
@@ -90,6 +90,7 @@ function insertRecipe(unsanitized_recipe) {
                         message: `Successfully inserted ingredient ${index} in the database with id ${ingredient_id}`
                     });
                     yield addTranslatedName(ingredient_id);
+                    yield addFoodData(ingredient_id);
                     return ingredient_id;
                 })));
                 logger_1.logger.log({
@@ -134,7 +135,7 @@ function selectRecipe(recipeId) {
             const values = [recipeId];
             const result = yield exports.pool.query(query, values);
             if (result.rows.length != 0) {
-                let ingredients_id = yield exports.pool.query(`SELECT i.name, ri.amount, ri.unit, i.name_en \
+                let ingredients_id = yield exports.pool.query(`SELECT i.name, ri.amount, ri.unit, i.name_en, i.fdc_id, i.high_confidence \
                 FROM ${exports.test_}ingredient AS i \
                 INNER JOIN ${exports.test_}recipe_ingredient AS ri\
                 ON ri.recipe_id = $1\
@@ -180,3 +181,31 @@ function addTranslatedName(ingredientId) {
     });
 }
 exports.addTranslatedName = addTranslatedName;
+function addFoodData(ingredientId) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let ingredientName = yield exports.pool.query(`SELECT name_en FROM ${exports.test_}ingredient WHERE ingredient_id = $1`, [ingredientId]);
+        if (ingredientName.rows.length != 0) {
+            let name_en = ingredientName.rows[0].name_en;
+            let fdc_response = yield (0, functions_1.getFoodData)(name_en);
+            try {
+                let insert_food = yield exports.pool.query(`UPDATE ${exports.test_}ingredient SET fdc_id = $1 WHERE ingredient_id = $2`, [fdc_response.foods[0].fdcId, ingredientId]);
+                let confidence = (fdc_response.query == 'strict');
+                if (confidence) {
+                    yield exports.pool.query(`UPDATE ${exports.test_}ingredient SET high_confidence = TRUE WHERE ingredient_id = $1`, [ingredientId]);
+                }
+                logger_1.logger.log({
+                    level: 'info',
+                    message: `Found and added fdc data for ingredient ${name_en}, ${confidence ? 'high' : 'low'} confidence`
+                });
+            }
+            catch (e) {
+                logger_1.logger.log({
+                    level: 'info',
+                    message: `Could not find fdc data for ingredient ${name_en}\nReceived:${fdc_response === null || fdc_response === void 0 ? void 0 : fdc_response.error} with ${fdc_response.query} querying\nError: ${e}`
+                });
+            }
+            return fdc_response;
+        }
+    });
+}
+exports.addFoodData = addFoodData;

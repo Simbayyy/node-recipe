@@ -3,7 +3,7 @@ import request from 'supertest'
 import {app} from '../app'
 import { Recipe, isRecipe } from '../types'
 import {pool, insertRecipe, addTranslatedName} from '../db' 
-import { lintIngredient, sanitizeRecipe, translateIngredient } from '../functions'
+import { getFoodData, lintIngredient, sanitizeRecipe, translateIngredient } from '../functions'
 import { dummyNotRecipe, dummyRecipe, dummyRecipe2, dummyResponse } from './dummy_values'
 
 beforeAll(async () => {
@@ -17,7 +17,9 @@ beforeAll(async () => {
         await pool.query("CREATE TABLE test_ingredient (\
             ingredient_id SERIAL NOT NULL PRIMARY KEY,\
             name VARCHAR(200) UNIQUE,\
-            name_en VARCHAR(200)\
+            name_en VARCHAR(200),\
+            fdc_id INT,\
+            high_confidence BOOLEAN DEFAULT FALSE\
             );")
         await pool.query("CREATE TABLE test_recipe_ingredient (\
             recipe_id INT,\
@@ -46,6 +48,14 @@ afterAll(async () => {
     }
 })
 
+test('getFoodData', async () => {
+    if (process.env.DB_ENV == 'test') {
+        let breadId = await getFoodData('bread')
+        expect(breadId.foods[0].fdcId).toEqual(325871)
+        let noId = await getFoodData('noID')
+        expect(noId).toHaveProperty('error')
+    }
+})
 
 test('GET /recipes/recipeId', async () => {
     if (process.env.DB_ENV == 'test') {
@@ -100,18 +110,18 @@ test('GET /', async () => {
 
 
 test('lintIngredients', () => {
-    expect(lintIngredient({ name: "Tomatoes", amount: 3, unit: "cups" }))
-        .toStrictEqual({ name: "tomatoes", amount: 3, unit: "cups", name_en:undefined })
+    expect(lintIngredient({ name: "Tomatoes", amount: 3.3, unit: "cups" }))
+        .toStrictEqual({ name: "tomatoes", amount: 3, unit: "cups", name_en:undefined, fdc_id:undefined, high_confidence:undefined })
     expect(lintIngredient({ name: " Onions ", amount: 3, unit: "cups" }))
-        .toStrictEqual({ name: "onions", amount: 3, unit: "cups", name_en:undefined })
+        .toStrictEqual({ name: "onions", amount: 3, unit: "cups", name_en:undefined, fdc_id:undefined, high_confidence:undefined })
     expect(lintIngredient({ name: "Bell Peppers (Red)", amount: 3, unit: "cups" }))
-        .toStrictEqual({ name: "bell peppers", amount: 3, unit: "cups", name_en:undefined })
+        .toStrictEqual({ name: "bell peppers", amount: 3, unit: "cups", name_en:undefined, fdc_id:undefined, high_confidence:undefined })
     expect(lintIngredient({ name: "Les onions ", amount: 3, unit: "cups" }))
-        .toStrictEqual({ name: "onions", amount: 3, unit: "cups", name_en:undefined })
+        .toStrictEqual({ name: "onions", amount: 3, unit: "cups", name_en:undefined, fdc_id:undefined, high_confidence:undefined })
     expect(lintIngredient({ name: "D'Onions ", amount: 3, unit: "cups" }))
-        .toStrictEqual({ name: "onions", amount: 3, unit: "cups", name_en:undefined })
+        .toStrictEqual({ name: "onions", amount: 3, unit: "cups", name_en:undefined, fdc_id:undefined, high_confidence:undefined })
     expect(lintIngredient({ name: "", amount: 3, unit: "cups" }))
-        .toStrictEqual({ name: "", amount: 3, unit: "cups", name_en:undefined })
+        .toStrictEqual({ name: "", amount: 3, unit: "cups", name_en:undefined, fdc_id:undefined, high_confidence:undefined })
 })
 
 test('isRecipe', () => {

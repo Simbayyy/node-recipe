@@ -38,7 +38,7 @@ export async function getRecipe (req:any, res:any) {
 
 }
 
-export function newRecipe (req:any, res:any) {
+export async function newRecipe (req:any, res:any) {
   res.header("Access-Control-Allow-Origin", "*");
   try {
     const recipe: Recipe = req.body
@@ -64,5 +64,5 @@ export function newRecipe (req:any, res:any) {
       message: `Could not read request body in newRecipe.`
     });
     res.status(500).json({error:"no"})
-  } 
+  }
 }
