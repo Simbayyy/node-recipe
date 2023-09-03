@@ -31,9 +31,11 @@ export function lintIngredient(ingredient: Ingredient): Ingredient {
             .replace(/^ /, "")
             .replace(/ $/, "")
             ,
-        amount: ingredient.amount,
+        amount: Math.trunc(ingredient.amount),
         unit: ingredient.unit,
-        name_en: ingredient.name_en ? ingredient.name_en : undefined
+        name_en: ingredient.name_en ?? undefined,
+        fdc_id: ingredient.fdc_id ?? undefined,
+        high_confidence: ingredient.high_confidence ?? undefined
     }
     return newingredient
 }
@@ -79,11 +81,11 @@ export async function getFoodData (name: string) {
                 }).catch((e) => {
                     response.error += `Could not find ID in ${dataType}\n`
                 })
-            }
-            if (query == name) {
-                response.query = 'loose'
-            } else {
-                response.query = 'strict'
+                if (query == name) {
+                    response.query = 'loose'
+                } else {
+                    response.query = 'strict'
+                }    
             }
         }
     return response

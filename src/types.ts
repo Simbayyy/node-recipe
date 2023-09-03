@@ -5,9 +5,11 @@ export interface Time {
 
 export interface Ingredient {
     name: string,
-    amount: Number,
+    amount: number,
     unit:string,
-    name_en?: string
+    name_en?: string,
+    fdc_id?:number,
+    high_confidence?:boolean
 }
 
 export interface Recipe {

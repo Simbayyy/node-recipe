@@ -105,7 +105,7 @@ export async function selectRecipe (recipeId: number) {
         const result = await pool.query(query, values);
 
         if (result.rows.length != 0){
-            let ingredients_id = await pool.query(`SELECT i.name, ri.amount, ri.unit, i.name_en \
+            let ingredients_id = await pool.query(`SELECT i.name, ri.amount, ri.unit, i.name_en, i.fdc_id, i.high_confidence \
                 FROM ${test_}ingredient AS i \
                 INNER JOIN ${test_}recipe_ingredient AS ri\
                 ON ri.recipe_id = $1\
@@ -152,10 +152,14 @@ export async function addFoodData (ingredientId: number) {
         let name_en = ingredientName.rows[0].name_en
         let fdc_response = await getFoodData(name_en)
         try {
-            let insert_food = await pool.query(`UPDATE ${test_}ingredient SET fdc_id = $1 WHERE ingredient_id = $2`, [fdc_response.foods[0].fcdId,ingredientId])
+            let insert_food = await pool.query(`UPDATE ${test_}ingredient SET fdc_id = $1 WHERE ingredient_id = $2`, [fdc_response.foods[0].fdcId,ingredientId])
+            let confidence = (fdc_response.query == 'strict')
+            if (confidence) {
+                await pool.query(`UPDATE ${test_}ingredient SET high_confidence = TRUE WHERE ingredient_id = $1`, [ingredientId])
+            }
             logger.log({
                 level:'info',
-                message:`Found fdc data for ingredient ${name_en}`
+                message:`Found and added fdc data for ingredient ${name_en}, ${confidence ? 'high' : 'low'} confidence`
             })
         } catch (e) {
             logger.log({

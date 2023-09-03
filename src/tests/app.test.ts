@@ -18,7 +18,8 @@ beforeAll(async () => {
             ingredient_id SERIAL NOT NULL PRIMARY KEY,\
             name VARCHAR(200) UNIQUE,\
             name_en VARCHAR(200),\
-            fdc_id INT\
+            fdc_id INT,\
+            high_confidence BOOLEAN DEFAULT FALSE\
             );")
         await pool.query("CREATE TABLE test_recipe_ingredient (\
             recipe_id INT,\

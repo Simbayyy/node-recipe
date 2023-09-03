@@ -135,7 +135,7 @@ function selectRecipe(recipeId) {
             const values = [recipeId];
             const result = yield exports.pool.query(query, values);
             if (result.rows.length != 0) {
-                let ingredients_id = yield exports.pool.query(`SELECT i.name, ri.amount, ri.unit, i.name_en \
+                let ingredients_id = yield exports.pool.query(`SELECT i.name, ri.amount, ri.unit, i.name_en, i.fdc_id, i.high_confidence \
                 FROM ${exports.test_}ingredient AS i \
                 INNER JOIN ${exports.test_}recipe_ingredient AS ri\
                 ON ri.recipe_id = $1\
@@ -188,10 +188,14 @@ function addFoodData(ingredientId) {
             let name_en = ingredientName.rows[0].name_en;
             let fdc_response = yield (0, functions_1.getFoodData)(name_en);
             try {
-                let insert_food = yield exports.pool.query(`UPDATE ${exports.test_}ingredient SET fdc_id = $1 WHERE ingredient_id = $2`, [fdc_response.foods[0].fcdId, ingredientId]);
+                let insert_food = yield exports.pool.query(`UPDATE ${exports.test_}ingredient SET fdc_id = $1 WHERE ingredient_id = $2`, [fdc_response.foods[0].fdcId, ingredientId]);
+                let confidence = (fdc_response.query == 'strict');
+                if (confidence) {
+                    yield exports.pool.query(`UPDATE ${exports.test_}ingredient SET high_confidence = TRUE WHERE ingredient_id = $1`, [ingredientId]);
+                }
                 logger_1.logger.log({
                     level: 'info',
-                    message: `Found fdc data for ingredient ${name_en}`
+                    message: `Found and added fdc data for ingredient ${name_en}, ${confidence ? 'high' : 'low'} confidence`
                 });
             }
             catch (e) {

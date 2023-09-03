@@ -52,6 +52,7 @@ function sortIngredients(a, b) {
 }
 exports.sortIngredients = sortIngredients;
 function lintIngredient(ingredient) {
+    var _a, _b, _c;
     let newingredient = {
         name: ingredient.name
             .replace(/\(.*/, "")
@@ -60,9 +61,11 @@ function lintIngredient(ingredient) {
             .replace(/^ ?(d|l|s)'/, "")
             .replace(/^ /, "")
             .replace(/ $/, ""),
-        amount: ingredient.amount,
+        amount: Math.trunc(ingredient.amount),
         unit: ingredient.unit,
-        name_en: ingredient.name_en ? ingredient.name_en : undefined
+        name_en: (_a = ingredient.name_en) !== null && _a !== void 0 ? _a : undefined,
+        fdc_id: (_b = ingredient.fdc_id) !== null && _b !== void 0 ? _b : undefined,
+        high_confidence: (_c = ingredient.high_confidence) !== null && _c !== void 0 ? _c : undefined
     };
     return newingredient;
 }
@@ -83,9 +86,6 @@ function getFoodData(name) {
         let response = { status: "Looking for ID", error: "", query: 'strict' };
         let dataTypes = ["Foundation", "Survey (FNDDS)", "SR Legacy"];
         for (let query of [`+${name}`.replace(/ /, " +"), name]) {
-            if (query == name) {
-                response.query = 'loose';
-            }
             for (let dataType of dataTypes)
                 if (response.status == "Looking for ID") {
                     let body = {
@@ -111,6 +111,12 @@ function getFoodData(name) {
                     }).catch((e) => {
                         response.error += `Could not find ID in ${dataType}\n`;
                     });
+                    if (query == name) {
+                        response.query = 'loose';
+                    }
+                    else {
+                        response.query = 'strict';
+                    }
                 }
         }
         return response;
