@@ -9,9 +9,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const app_1 = require("../app");
+const logger_1 = require("../logger");
 const db_1 = require("../db");
-app_1.logger.log({
+logger_1.logger.log({
     level: 'info',
     message: "Resetting DB tables"
 });

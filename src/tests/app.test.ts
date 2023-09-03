@@ -2,8 +2,9 @@ import { expect, test, afterAll, beforeAll } from 'vitest'
 import request from 'supertest'
 import {app} from '../app'
 import { Recipe, isRecipe } from '../types'
-import {pool, insertRecipe} from '../db' 
-import { lintIngredient, sanitizeRecipe } from '../functions'
+import {pool, insertRecipe, addTranslatedName} from '../db' 
+import { lintIngredient, sanitizeRecipe, translateIngredient } from '../functions'
+import { dummyNotRecipe, dummyRecipe, dummyRecipe2, dummyResponse } from './dummy_values'
 
 beforeAll(async () => {
     if (process.env.DB_ENV == 'test') {
@@ -15,7 +16,8 @@ beforeAll(async () => {
             );")
         await pool.query("CREATE TABLE test_ingredient (\
             ingredient_id SERIAL NOT NULL PRIMARY KEY,\
-            name VARCHAR(200) UNIQUE\
+            name VARCHAR(200) UNIQUE,\
+            name_en VARCHAR(200)\
             );")
         await pool.query("CREATE TABLE test_recipe_ingredient (\
             recipe_id INT,\
@@ -44,6 +46,7 @@ afterAll(async () => {
     }
 })
 
+
 test('GET /recipes/recipeId', async () => {
     if (process.env.DB_ENV == 'test') {
         const response = await request(app)
@@ -51,8 +54,7 @@ test('GET /recipes/recipeId', async () => {
             .set('Accept', 'application/json')
             .set('Content-Type', 'application/json')
         expect(response.status).toEqual(200)
-        expect(response.body).toStrictEqual(sanitizeRecipe(dummyRecipe))
-
+        expect(response.body).toStrictEqual(dummyResponse)
         const response2 = await request(app)
             .get('/recipes/10')
             .set('Accept', 'application/json')
@@ -96,72 +98,20 @@ test('GET /', async () => {
     expect(response.status).toEqual(200)
 })
 
-const dummyRecipe = {
-    name:"Macaronis",
-    url:"http://macaroni",
-    time: {
-        time: 10,
-        unit: "min"
-    },
-    ingredients: [
-        {
-            name: "macaroni",
-            amount: 100,
-            unit: "g"
-        },
-        {
-            name: "macaroni",
-            amount: 200,
-            unit: "g"
-        }
-    ]
-}
-
-const dummyRecipe2 = {
-    name:"Macaronis2",
-    url:"http://macaroni2",
-    time: {
-        time: 10,
-        unit: "min"
-    },
-    ingredients: [
-        {
-            name: "macaroni",
-            amount: 100,
-            unit: "g"
-        }
-    ]
-}
-
-const dummyNotRecipe = {
-    title:"Macaronis",
-    url:"http://macaroni",
-    time: {
-        time: 10,
-        unit: "min"
-    },
-    ingredients: [
-        {
-            name: "macaroni",
-            amount: 100,
-            unit: 10
-        }
-    ]
-}
 
 test('lintIngredients', () => {
     expect(lintIngredient({ name: "Tomatoes", amount: 3, unit: "cups" }))
-        .toStrictEqual({ name: "tomatoes", amount: 3, unit: "cups" })
+        .toStrictEqual({ name: "tomatoes", amount: 3, unit: "cups", name_en:undefined })
     expect(lintIngredient({ name: " Onions ", amount: 3, unit: "cups" }))
-        .toStrictEqual({ name: "onions", amount: 3, unit: "cups" })
+        .toStrictEqual({ name: "onions", amount: 3, unit: "cups", name_en:undefined })
     expect(lintIngredient({ name: "Bell Peppers (Red)", amount: 3, unit: "cups" }))
-        .toStrictEqual({ name: "bell peppers", amount: 3, unit: "cups" })
+        .toStrictEqual({ name: "bell peppers", amount: 3, unit: "cups", name_en:undefined })
     expect(lintIngredient({ name: "Les onions ", amount: 3, unit: "cups" }))
-        .toStrictEqual({ name: "onions", amount: 3, unit: "cups" })
+        .toStrictEqual({ name: "onions", amount: 3, unit: "cups", name_en:undefined })
     expect(lintIngredient({ name: "D'Onions ", amount: 3, unit: "cups" }))
-        .toStrictEqual({ name: "onions", amount: 3, unit: "cups" })
+        .toStrictEqual({ name: "onions", amount: 3, unit: "cups", name_en:undefined })
     expect(lintIngredient({ name: "", amount: 3, unit: "cups" }))
-        .toStrictEqual({ name: "", amount: 3, unit: "cups" })
+        .toStrictEqual({ name: "", amount: 3, unit: "cups", name_en:undefined })
 })
 
 test('isRecipe', () => {

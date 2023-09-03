@@ -6,7 +6,8 @@ export interface Time {
 export interface Ingredient {
     name: string,
     amount: Number,
-    unit:string
+    unit:string,
+    name_en?: string
 }
 
 export interface Recipe {
