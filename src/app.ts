@@ -11,7 +11,7 @@ export const app = express()
 const port = 3000;
 
 app.use(express.json())
-app.use('/', routes.router)
+app.use('/api/', routes.router)
 app.set('view engine', hbs)
 
 app.listen(port, async () => {
