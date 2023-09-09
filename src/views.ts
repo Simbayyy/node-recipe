@@ -1,6 +1,6 @@
 import * as app from './app'
 import { logger } from './logger';
-import { insertRecipe, selectRecipe } from './db';
+import { insertRecipe, pool, selectRecipe } from './db';
 import { sanitizeRecipe } from './functions';
 import {Recipe, isRecipe} from './types'
 
@@ -19,7 +19,16 @@ export function options (req:any, res:any) {
   });  
 }
 
+export async function getAllRecipes (req:any, res:any) {
+  res.header("Access-Control-Allow-Origin", "*");
+  let all_recipe_ids = await pool.query('SELECT recipe_id FROM recipe')
+  let recipes = await Promise.all(all_recipe_ids.rows.map((id) => {return selectRecipe(id.recipe_id)}))
+  let filter_recipes = recipes.filter(isRecipe)  
+  res.status(200).json({recipes:filter_recipes})
+}
+
 export async function getRecipe (req:any, res:any) {
+  res.header("Access-Control-Allow-Origin", "*");
   try {
     let recipe = await selectRecipe(req.params.recipeId)
     if (isRecipe(recipe)) {

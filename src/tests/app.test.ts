@@ -60,13 +60,13 @@ test('getFoodData', async () => {
 test('GET /recipes/recipeId', async () => {
     if (process.env.DB_ENV == 'test') {
         const response = await request(app)
-            .get('/recipes/1')
+            .get('/api/recipes/1')
             .set('Accept', 'application/json')
             .set('Content-Type', 'application/json')
         expect(response.status).toEqual(200)
         expect(response.body).toStrictEqual(dummyResponse)
         const response2 = await request(app)
-            .get('/recipes/10')
+            .get('/api/recipes/10')
             .set('Accept', 'application/json')
         expect(response2.status).toEqual(500)
     } else {
@@ -101,14 +101,6 @@ test('Database structure', async () => {
     }
 })
 
-test('GET /', async () => {
-    const response = await request(app)
-        .get('/')
-        .set('Accept', 'application/json')
-    expect(response.status).toEqual(200)
-})
-
-
 test('lintIngredients', () => {
     expect(lintIngredient({ name: "Tomatoes", amount: 3.3, unit: "cups" }))
         .toStrictEqual({ name: "tomatoes", amount: 3, unit: "cups", name_en:undefined, fdc_id:undefined, high_confidence:undefined })
@@ -132,12 +124,12 @@ test('isRecipe', () => {
 
 test('POST /newrecipe', async () => {
     const response = await request(app)
-        .post('/newrecipe')
+        .post('/api/newrecipe')
         .send(dummyRecipe)
         .set('Accept', 'application/json')
     expect(response.status).toEqual(200)
     const responseError = await request(app)
-        .post('/newrecipe')
+        .post('/api/newrecipe')
         .send({})
         .set('Accept', 'application/json')
     expect(responseError.status).toEqual(500)
