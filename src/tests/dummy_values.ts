@@ -20,8 +20,8 @@ export const dummyRecipe = {
 }
 
 export const dummyResponse = {
+    id:"1",
     name:"Macaronis",
-    id:1
     url:"http://macaroni",
     time: {
         time: 10,
