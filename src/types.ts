@@ -16,7 +16,8 @@ export interface Recipe {
     name: string,
     url: string,
     time: Time,
-    ingredients: Ingredient[]
+    ingredients: Ingredient[],
+    id?: number
 }
 
 export function isRecipe(recipe: Recipe | object): recipe is Recipe {

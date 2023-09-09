@@ -4,15 +4,13 @@ import * as deepl from 'deepl-node'
 
 export function sanitizeRecipe(recipe: Recipe): Recipe {
     let newrecipe: Recipe = {
-        name: recipe.name,
-        url: recipe.url,
-        time: recipe.time,
+        ...recipe,
         ingredients: recipe.ingredients.filter((value, index, self) =>
             // Remove ingredients with duplicate names
             index === self.findIndex((t) => (
                 t.name === value.name
             ))
-        ).map(lintIngredient).sort(sortIngredients)
+        ).map(lintIngredient).sort(sortIngredients),
     }
     return newrecipe
 }

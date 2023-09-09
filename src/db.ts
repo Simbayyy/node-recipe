@@ -105,7 +105,7 @@ export async function selectRecipe (recipeId: number) {
         const result = await pool.query(query, values);
 
         if (result.rows.length != 0){
-            let ingredients_id = await pool.query(`SELECT i.name, ri.amount, ri.unit, i.name_en, i.fdc_id, i.high_confidence \
+            let ingredients_id = await pool.query(`SELECT ri.recipe_id, i.name, ri.amount, ri.unit, i.name_en, i.fdc_id, i.high_confidence \
                 FROM ${test_}ingredient AS i \
                 INNER JOIN ${test_}recipe_ingredient AS ri\
                 ON ri.recipe_id = $1\
@@ -117,7 +117,8 @@ export async function selectRecipe (recipeId: number) {
                 name: result.rows[0].name,
                 url: result.rows[0].url,
                 time: {time:time.rows[0].time,unit:time.rows[0].unit},
-                ingredients: ingredients_id.rows
+                ingredients: ingredients_id.rows,
+                id:recipeId
             } 
             return sanitizeRecipe(recipe)
         } else {
