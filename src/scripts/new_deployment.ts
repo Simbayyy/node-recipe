@@ -6,39 +6,25 @@ logger.log({
     message:`Deployment of app in ${process.env.APP_NAME}, at ${console.time()}`
 })
 
-async function add_fdc_id_column() {
-    const exists = await pool.query("SELECT column_name \
-    FROM information_schema.columns\
-    WHERE table_name='ingredient' and column_name='fdc_id';")
-    if (exists.rows.length == 0) {
-        const add_column = await pool.query("ALTER TABLE ingredient \
-            ADD COLUMN fdc_id INT")
+async function add_users_table() {
+    try {
+        const exists = await pool.query("CREATE TABLE users (\
+        id SERIAL PRIMARY KEY,\
+        username VARCHAR(50) UNIQUE NOT NULL,\
+        email VARCHAR(255) UNIQUE NOT NULL,\
+        password VARCHAR(255) NOT NULL,\
+        salt VARCHAR(255) NOT NULL,\
+        created_at TIMESTAMP DEFAULT NOW(),\
+        updated_at TIMESTAMP,\
+        is_active BOOLEAN DEFAULT true);")
         return 'added'
     }
-    else {
-        return 'not added'
+    catch (err) {
+        return 'not added: ${err}'
     }
 }
 
-async function add_high_confidence_column() {
-    const exists = await pool.query("SELECT column_name \
-    FROM information_schema.columns\
-    WHERE table_name='ingredient' and column_name='high_confidence';")
-    if (exists.rows.length == 0) {
-        const add_column = await pool.query("ALTER TABLE ingredient \
-            ADD COLUMN high_confidence BOOLEAN DEFAULT FALSE")
-        return 'added'
-    }
-    else {
-        return 'not added'
-    }
-}
-
-add_fdc_id_column().then((res) => logger.log({
+add_users_table().then((res) => logger.log({
     level:'info',
-    message:`fdc id column ${res}`
-}))
-add_high_confidence_column().then((res) => logger.log({
-    level:'info',
-    message:`high confidence column ${res}`
+    message:`Users table ${res}`
 }))
