@@ -10,7 +10,7 @@ import * as views from './views'
 export const authRouter = express.Router()
 authRouter.options(/.*/, cors(), views.options)
 
-passport.use('local', new Strategy(async function verify(username, password, cb) {
+passport.use('local', new Strategy(async function verify(username: string, password:string, cb:any) {
     try {
         const get_user = await pool.query(`SELECT * FROM ${test_}users WHERE username =$1`, [ username ])
         if (get_user.rows.length != 0) {
@@ -47,13 +47,13 @@ passport.use('local', new Strategy(async function verify(username, password, cb)
     }
 }));
 
-passport.serializeUser(function(user:any, cb) {
+passport.serializeUser(function(user:any, cb: any) {
     process.nextTick(function() {
         cb(null, { id: user.id, username: user.username });
     });
 });
     
-passport.deserializeUser(function(user:any, cb) {
+passport.deserializeUser(function(user:any, cb: any) {
     process.nextTick(function() {
         return cb(null, user);
     });
@@ -89,7 +89,7 @@ authRouter.post('/password', cors(), (req: any, res: any, next: any) => {
   }
 );
 
-authRouter.get('/password', cors(), ensureAuthenticated, (req,res) => {
+authRouter.get('/password', cors(), ensureAuthenticated, (req:any,res:any) => {
     res.json({success:true})
 })
 authRouter.post('/signup', cors(), function(req:any, res:any, next) {
