@@ -92,7 +92,7 @@ authRouter.post('/password', cors(), (req: any, res: any, next: any) => {
 authRouter.get('/password', cors(), ensureAuthenticated, (req,res) => {
     res.json({success:true})
 })
-authRouter.post('/signup', cors(), function(req, res, next) {
+authRouter.post('/signup', cors(), function(req:any, res:any, next) {
     var salt = crypto.randomBytes(16);
     crypto.pbkdf2(req.body.password, salt, 310000, 32, 'sha256', async function(err, hashedPassword) {
       try {
@@ -109,7 +109,7 @@ authRouter.post('/signup', cors(), function(req, res, next) {
             id: insert_user.rows[0].id,
             username: req.body.username
             };
-        req.login(user, function(err) {
+        req.login(user, function(err:any) {
             logger.log({
                 level:'info',
                 message:`Logging ${user} in`
