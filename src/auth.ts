@@ -59,6 +59,13 @@ passport.deserializeUser(function(user:any, cb: any) {
     });
 });
     
+authRouter.post('/logout', cors(), function(req, res, next){
+  req.logout(function(err) {
+    if (err) { return next(err); }
+    logger.log({level:'info',message:`Successfully logged out ${req.user}`})
+    res.json({success:true});
+  });
+});
 
 authRouter.post('/password', cors(), (req: any, res: any, next: any) => {
     passport.authenticate('local', (err: any, user: any, info: any) => {
@@ -69,7 +76,7 @@ authRouter.post('/password', cors(), (req: any, res: any, next: any) => {
       if (!user) {
         // Authentication failed
         logger.log({level:'error', message:'Incorrect username or password.'});
-        return res.status(500).json({success:false});
+        return res.status(500).json({success:false, code:'incorrect', error:'Incorrect username or password'});
       }
       // Authentication successful
       req.logIn(user, (err:any) => {
@@ -77,7 +84,7 @@ authRouter.post('/password', cors(), (req: any, res: any, next: any) => {
           return next(err);
         }
         logger.log({level:'info', message:'successful login.'});
-        return res.status(200).json({success:true});
+        return res.status(200).json({username:req.user.username});
       });
     })(req, res, next);
   },
@@ -85,7 +92,7 @@ authRouter.post('/password', cors(), (req: any, res: any, next: any) => {
     // This middleware handles errors that occur during login
     console.error('Login error:', err);
     logger.log({level:'error', message:'error in login.'});
-    res.status(500).json({success:false});
+    res.status(500).json({success:false, code:'error', error:'Something went wrong during login'});
   }
 );
 
@@ -94,6 +101,7 @@ authRouter.get('/password', cors(), ensureAuthenticated, (req:any,res:any) => {
 })
 authRouter.post('/signup', cors(), function(req:any, res:any, next) {
     var salt = crypto.randomBytes(16);
+    if (req.body.password.length < 8) {return res.status(500).json({success:false,code:'shortpass'});}
     crypto.pbkdf2(req.body.password, salt, 310000, 32, 'sha256', async function(err, hashedPassword) {
       try {
         if (err) { return next(err); }
@@ -109,18 +117,23 @@ authRouter.post('/signup', cors(), function(req:any, res:any, next) {
             id: insert_user.rows[0].id,
             username: req.body.username
             };
-        req.login(user, function(err:any) {
-            logger.log({
-                level:'info',
-                message:`Logging ${user} in`
-            })
-            if (err) { return next(err); }
-            res.redirect('/');
+        req.logIn(user, (err:any) => {
+          if (err) {
+            return next(err);
+          }
+          logger.log({level:'info', message:'successful login.'});
+          return res.status(200).json({username:req.user.username});
         });
-      } catch (err ){
+            } catch (err ){
         return next(err)
       }
     });
+},
+  (err: any, req: any, res: any, next: any) => {
+    // This middleware handles errors that occur during signup
+    console.error('Signup error:', err);
+    logger.log({level:'error', message:'error in signup.'});
+    res.status(500).json({success:false,code:err.code});
 });
 
 
