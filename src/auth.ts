@@ -49,7 +49,7 @@ passport.use('local', new Strategy(async function verify(username: string, passw
 
 passport.serializeUser(function(user:any, cb: any) {
     process.nextTick(function() {
-        cb(null, { id: user.id, username: user.username });
+        cb(null, { id: user.id, username: user.username, admin: user.admin});
     });
 });
     
@@ -122,7 +122,7 @@ authRouter.post('/signup', cors(), function(req:any, res:any, next) {
             return next(err);
           }
           logger.log({level:'info', message:'successful login.'});
-          return res.status(200).json({username:req.user.username});
+          return res.status(200).json({username:req.user.username, admin:req.user.admin});
         });
             } catch (err ){
         return next(err)
@@ -136,14 +136,24 @@ authRouter.post('/signup', cors(), function(req:any, res:any, next) {
     res.status(500).json({success:false,code:err.code});
 });
 
+export function isAdmin(req:any, res:any, next: () => any) {
+  if (req.user.admin) {
+    return next();
+  }
+  res.status(500).json({success:false,code:"unauthorized"});
+  logger.log({
+      level:'info',
+      message:`User ${req.user.username} attempted to check admin resources but their admin value is ${req.user.admin}`
+  })
+}
 
 export function ensureAuthenticated(req:any, res:any, next: () => any) {
-    if (req.isAuthenticated()) {
-      return next();
-    }
-    res.redirect('/login');
-    logger.log({
-        level:'info',
-        message:'Access forbidden'
-    })
+  if (req.isAuthenticated()) {
+    return next();
   }
+  res.redirect('/login');
+  logger.log({
+      level:'info',
+      message:'Access forbidden'
+  })
+}

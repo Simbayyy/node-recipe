@@ -12,6 +12,14 @@ export interface Ingredient {
     high_confidence?:boolean
 }
 
+export interface IngredientRaw {
+    ingredient_id: number,
+    name: string,
+    name_en: string,
+    fdc_id: number,
+    high_confidence: boolean
+}
+
 export interface Recipe {
     name: string,
     url: string,

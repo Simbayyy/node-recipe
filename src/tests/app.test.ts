@@ -2,9 +2,9 @@ import { expect, test, afterAll, beforeAll } from 'vitest'
 import request from 'supertest'
 import {app} from '../app'
 import { Recipe, isRecipe } from '../types'
-import {pool, insertRecipe, addTranslatedName} from '../db' 
+import {pool, insertRecipe, addTranslatedName, selectIngredient} from '../db' 
 import { getFoodData, lintIngredient, sanitizeRecipe, translateIngredient } from '../functions'
-import { dummyNotRecipe, dummyRecipe, dummyRecipe2, dummyResponse } from './dummy_values'
+import { dummyNotRecipe, dummyRecipe, dummyRecipe2, dummyResponse, dummyResponseIngredient } from './dummy_values'
 
 beforeAll(async () => {
     if (process.env.DB_ENV == 'test') {
@@ -57,7 +57,7 @@ test('getFoodData', async () => {
     }
 })
 
-test('GET /recipes/recipeId', async () => {
+test('GET /api/recipes/recipeId', async () => {
     if (process.env.DB_ENV == 'test') {
         const response = await request(app)
             .get('/api/recipes/1')
@@ -69,6 +69,15 @@ test('GET /recipes/recipeId', async () => {
             .get('/api/recipes/10')
             .set('Accept', 'application/json')
         expect(response2.status).toEqual(500)
+    } else {
+        return true
+    }
+})
+
+test('selectIngredient', async () => {
+    if (process.env.DB_ENV == 'test') {
+        const response = await selectIngredient(1)
+        expect(response).toStrictEqual(dummyResponseIngredient)
     } else {
         return true
     }
