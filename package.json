@@ -11,7 +11,7 @@
     "ssl": "npm config set strict-ssl=false",
     "deploy_preprod": "source /home/sbaillet/nodevenv/node-preprod/20/bin/activate && cd /home/sbaillet/node-preprod && npm run deploy",
     "deploy_prod": "source /home/sbaillet/nodevenv/node-recipe/20/bin/activate && cd /home/sbaillet/node-recipe && npm run deploy",
-    "deploy": "tsc && npm i && node dist/scripts/new_deployment.js && touch tmp/restart.txt"
+    "deploy": "npm i && tsc && node dist/scripts/new_deployment.js && touch tmp/restart.txt"
   },
   "repository": {
     "type": "git",
@@ -42,7 +42,7 @@
   },
   "devDependencies": {
     "@types/connect-pg-simple": "^7.0.1",
-    "@types/cors": "^2.8.13",
+    "@types/cors": "^2.8.14",
     "@types/express": "^4.17.17",
     "@types/express-session": "^1.17.7",
     "@types/hbs": "^4.0.1",

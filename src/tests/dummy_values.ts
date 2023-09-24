@@ -47,6 +47,14 @@ export const dummyResponse = {
     ]
 }
 
+export const dummyResponseIngredient = {
+    name: "pain",
+    name_en:"bread",
+    fdc_id: 325871,
+    high_confidence: true,
+    ingredient_id:1
+}
+
 export const dummyRecipe2 = {
     name:"Macaronis2",
     url:"http://macaroni2",

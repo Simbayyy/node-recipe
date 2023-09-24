@@ -1,5 +1,5 @@
 import { Pool } from 'pg'
-import { Recipe, isRecipe } from './types'
+import { Ingredient, IngredientRaw, Recipe, isRecipe } from './types'
 import * as dotenv from 'dotenv'
 import { logger } from './logger'
 import { getFoodData, sanitizeRecipe, sortIngredients, translateIngredient } from './functions'
@@ -128,6 +128,31 @@ export async function selectRecipe (recipeId: number) {
         logger.log({
             level:'error',
             message:`Could not fetch recipe\nError: ${e}`
+        })
+        return {}
+    }
+} 
+
+
+export async function selectIngredient (ingredientId: number) {
+    try 
+        {const query = `SELECT * \
+            FROM ${process.env.DB_ENV == 'test' ? "test_" :""}ingredient \
+            WHERE ingredient_id = $1`
+        const values = [ingredientId]
+
+        const result = await pool.query(query, values);
+
+        if (result.rows.length != 0){
+            let ingredient:IngredientRaw = result.rows[0]
+            return ingredient
+        } else {
+            throw Error("No ingredient found")
+        }
+    } catch (e) {
+        logger.log({
+            level:'error',
+            message:`Could not fetch ingredient\nError: ${e}`
         })
         return {}
     }

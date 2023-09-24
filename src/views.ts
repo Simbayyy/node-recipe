@@ -1,6 +1,6 @@
 import * as app from './app'
 import { logger } from './logger';
-import { insertRecipe, pool, selectRecipe } from './db';
+import { insertRecipe, pool, selectIngredient, selectRecipe, test_ } from './db';
 import { sanitizeRecipe } from './functions';
 import {Recipe, isRecipe} from './types'
 
@@ -75,3 +75,13 @@ export async function newRecipe (req:any, res:any) {
     res.status(500).json({error:"no"})
   }
 }
+
+export async function getAllIngredients (req:any, res:any) {
+
+  let all_ingredient_ids = await pool.query(`SELECT ingredient_id FROM ${test_}ingredient`)
+  let ingredients = await Promise.all(all_ingredient_ids.rows.map((id) => {
+    return selectIngredient(id.ingredient_id)
+  }))
+  res.status(200).json({ingredients:ingredients})
+}
+
