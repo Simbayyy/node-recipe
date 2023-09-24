@@ -20,4 +20,4 @@ router.get('/check-admin', cors(), isAdmin, (req:any, res:any) => {
     res.status(200).json({success:true,admin:req.user.admin})
 })
 
-router.get('/ingredients', views.getAllIngredients)
+router.get('/ingredients', cors(), isAdmin, views.getAllIngredients)

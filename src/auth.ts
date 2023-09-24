@@ -84,7 +84,7 @@ authRouter.post('/password', cors(), (req: any, res: any, next: any) => {
           return next(err);
         }
         logger.log({level:'info', message:'successful login.'});
-        return res.status(200).json({username:req.user.username});
+        return res.status(200).json({username:req.user.username, admin:req.user.admin});
       });
     })(req, res, next);
   },
