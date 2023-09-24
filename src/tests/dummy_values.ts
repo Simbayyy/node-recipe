@@ -86,3 +86,46 @@ export const dummyNotRecipe = {
         }
     ]
 }
+
+export const dummyPage = '<head><script type="application/ld+json">{"@context": "https://schema.org",\
+"@type": "Recipe",\
+"author": "John Smith",\
+"cookTime": "PT1H",\
+"datePublished": "2009-05-08",\
+"description": "This classic banana bread recipe comes from my mom -- the walnuts add a nice texture and flavor to the banana bread.",\
+"image": "bananabread.jpg",\
+"recipeIngredient": [\
+  "3 or 4 ripe bananas, smashed",\
+  "1 egg",\
+  "3/4 cup of sugar"\
+],\
+"interactionStatistic": {\
+  "@type": "InteractionCounter",\
+  "interactionType": "https://schema.org/Comment",\
+  "userInteractionCount": "140"\
+},\
+"name": "Moms World Famous Banana Bread",\
+"nutrition": {\
+  "@type": "NutritionInformation",\
+  "calories": "240 calories",\
+  "fatContent": "9 grams fat"\
+},\
+"prepTime": "PT15M",\
+"recipeInstructions": "Preheat the oven to 350 degrees. Mix in the ingredients in a bowl. Add the flour last. Pour the mixture into a loaf pan and bake for one hour.",\
+"recipeYield": "1 loaf",\
+"suitableForDiet": "https://schema.org/LowFatDiet"\
+}</script><script type="application/ld+json">{"test":1}</script></head>'
+
+
+export const dummyLDJSON = {
+    "cookTime": "PT1H",
+    "name": "Moms World Famous Banana Bread",
+    "prepTime": "PT15M",
+    "recipeIngredient": [
+        "3 or 4 ripe bananas, smashed",
+        "1 egg",
+        "3/4 cup of sugar",
+    ],
+    "recipeInstructions": "Preheat the oven to 350 degrees. Mix in the ingredients in a bowl. Add the flour last. Pour the mixture into a loaf pan and bake for one hour.",
+    "recipeYield": "1 loaf",
+}

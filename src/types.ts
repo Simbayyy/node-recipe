@@ -28,6 +28,31 @@ export interface Recipe {
     id?: number
 }
 
+export interface RecipeSchema {
+    name: string,
+    prepTime?: string,
+    cookTime?: string,
+    totalTime?: string,
+    recipeInstructions?: string[],
+    recipeYield?: string,
+    recipeCategory?:string,
+    recipeCuisine?:string,
+    url?:string,
+    recipeIngredient?: string[],
+}
+
+export const RecipeSchemaKeys = ["name",
+    "prepTime",
+    "cookTime",
+    "totalTime",
+    "recipeInstructions",
+    "recipeYield",
+    "recipeCategory",
+    "recipeCuisine",
+    "url",
+    "recipeIngredient"
+]
+
 export function isRecipe(recipe: Recipe | object): recipe is Recipe {
     const recipeAs = recipe as Recipe
     return ((recipeAs.name !== undefined) && (typeof(recipeAs.name) == 'string')

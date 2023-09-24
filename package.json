@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/Simbayyy/node-recipe#readme",
   "dependencies": {
+    "cheerio": "^1.0.0-rc.12",
     "connect-pg-simple": "^9.0.0",
     "cors": "^2.8.5",
     "deepl-node": "^1.10.2",
@@ -35,6 +36,7 @@
     "passport": "^0.6.0",
     "passport-local": "^1.0.0",
     "pg": "^8.11.3",
+    "schema-dts": "^1.1.2",
     "supertest": "^6.3.3",
     "typescript": "^5.2.2",
     "vitest": "^0.34.3",
