@@ -1,12 +1,9 @@
 import * as dotenv from 'dotenv'
 import * as routes from './routes'
+import hbs from 'hbs'
 import express from 'express'
 import { logger } from "./logger"
 import path from 'path'
-import { authRouter } from './auth'
-import session from 'express-session'
-import passport from 'passport'
-import memorystore from 'memorystore'
 
 // Load environment variables
 dotenv.config({path: process.env.NODE_ENV == 'production' ? '.env' : '.env.development.local'})
@@ -14,22 +11,7 @@ dotenv.config({path: process.env.NODE_ENV == 'production' ? '.env' : '.env.devel
 export const app = express()
 const port = 3000;
 
-let store = memorystore(session)
-
 app.use(express.json())
-app.use(session({
-  secret: process.env.SESSION_SECRET!,
-  resave: false,
-  saveUninitialized: false,
-  cookie: { maxAge: 24 * 60 * 60 * 1000 }, // 30 days
-  store: new store({
-    checkPeriod: 24 * 60 * 60 * 1000
-  })
-}))
-app.use(passport.initialize());
-app.use(passport.session());
-app.use(passport.authenticate('session'));
-app.use('/login/', authRouter)
 app.use('/api/', routes.router)
 app.use(express.static(path.resolve(__dirname, 'react')))
 app.get('*', (req, res) => {

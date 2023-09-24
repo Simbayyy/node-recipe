@@ -123,19 +123,16 @@ test('isRecipe', () => {
 })
 
 test('POST /newrecipe', async () => {
-    if (process.env.DB_ENV == 'test') {
-        const response = await request(app)
-            .post('/api/newrecipe')
-            .send(dummyRecipe)
-            .set('Accept', 'application/json')
-        expect(response.status).toEqual(200)
-        const responseError = await request(app)
-            .post('/api/newrecipe')
-            .send({})
-            .set('Accept', 'application/json')
-        expect(responseError.status).toEqual(500)
-    }else {
-        return true
-    }
+    const response = await request(app)
+        .post('/api/newrecipe')
+        .send(dummyRecipe)
+        .set('Accept', 'application/json')
+    expect(response.status).toEqual(200)
+    const responseError = await request(app)
+        .post('/api/newrecipe')
+        .send({})
+        .set('Accept', 'application/json')
+    expect(responseError.status).toEqual(500)
+
 
 })
