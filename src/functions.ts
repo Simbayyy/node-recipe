@@ -1,4 +1,5 @@
 import { logger } from "./logger";
+import { parse_recipe_from_page } from "./recipe_parser";
 import { Ingredient, Recipe } from "./types";
 import * as deepl from 'deepl-node'
 
@@ -87,4 +88,21 @@ export async function getFoodData (name: string) {
             }
         }
     return response
+}
+
+export function get_schema_from_url(url:string) {
+    let schema = fetch(url)
+        .then((response) => {
+            return response.text()
+        })
+        .then((response) => {
+            return parse_recipe_from_page(response) 
+        })
+        .catch((err) => {
+            logger.log({
+                level:'error',
+                message:`Could not get schema from URL ${url}. Error:\n${err}`
+            })
+        })
+    return schema
 }

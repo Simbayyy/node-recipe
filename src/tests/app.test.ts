@@ -12,7 +12,13 @@ beforeAll(async () => {
         await pool.query("CREATE TABLE test_recipe (\
             recipe_id SERIAL NOT NULL PRIMARY KEY,\
             name VARCHAR(500),\
-            url VARCHAR(500) UNIQUE \
+            url VARCHAR(500) UNIQUE,\
+            prepTime VARCHAR(20),\
+            cookTime VARCHAR(20),\
+            totalTime VARCHAR(20),\
+            recipeYield VARCHAR(50),\
+            recipeCategory VARCHAR(50),\
+            recipeCuisine VARCHAR(50)\
             );")
         await pool.query("CREATE TABLE test_ingredient (\
             ingredient_id SERIAL NOT NULL PRIMARY KEY,\
