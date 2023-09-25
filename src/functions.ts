@@ -1,7 +1,8 @@
 import { logger } from "./logger";
 import { parse_recipe_from_page } from "./recipe_parser";
-import { Ingredient, Recipe } from "./types";
+import { Ingredient, Recipe, RecipeSchema } from "./types";
 import * as deepl from 'deepl-node'
+import * as he from 'he'
 
 export function sanitizeRecipe(recipe: Recipe): Recipe {
     let newrecipe: Recipe = {
@@ -12,6 +13,33 @@ export function sanitizeRecipe(recipe: Recipe): Recipe {
                 t.name === value.name
             ))
         ).map(lintIngredient).sort(sortIngredients),
+    }
+    return newrecipe
+}
+
+export function sanitizeRecipeSchema(recipe: RecipeSchema): RecipeSchema {
+    let newrecipe: RecipeSchema = {
+        ...recipe,
+        recipeInstructions: "recipeInstructions" in recipe && Array.isArray(recipe.recipeInstructions) 
+            ? recipe.recipeInstructions.map((elt) => {
+                let instruction: string
+                if (typeof elt === 'string') {
+                    instruction =  elt
+                } else {
+                    instruction = ('text' in elt && elt.text as string) || ('name' in elt && elt.name as string) || ""
+                }
+                return he.decode(instruction)
+            }).join("\n")
+            : [recipe.recipeInstructions as string] || [""],
+        recipeCuisine: "recipeCuisine" in recipe && Array.isArray(recipe.recipeCuisine)
+            ? he.decode(recipe.recipeCuisine.join(' ; '))
+            : he.decode(recipe.recipeCuisine as string || ""),
+        recipeYield: "recipeYield" in recipe && Array.isArray(recipe.recipeYield)
+            ? he.decode(recipe.recipeYield.join(' ; '))
+            : he.decode(recipe.recipeYield as string || ""),
+        recipeCategory: "recipeCategory" in recipe && Array.isArray(recipe.recipeCategory)
+            ? he.decode(recipe.recipeCategory.join(' ; '))
+            : he.decode(recipe.recipeCategory as string || "")
     }
     return newrecipe
 }

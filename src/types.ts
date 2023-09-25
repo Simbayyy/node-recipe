@@ -33,12 +33,12 @@ export interface RecipeSchema {
     prepTime?: string,
     cookTime?: string,
     totalTime?: string,
-    recipeInstructions?: string[],
-    recipeYield?: string,
-    recipeCategory?:string,
-    recipeCuisine?:string,
+    recipeInstructions?: string | string[] | object[],
+    recipeYield?: string | string[],
+    recipeCategory?:string | string[],
+    recipeCuisine?:string |string[],
     url?:string,
-    recipeIngredient?: string[],
+    recipeIngredient?: string[] | Ingredient[],
 }
 
 export const RecipeSchemaKeys = ["name",

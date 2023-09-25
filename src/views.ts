@@ -1,8 +1,9 @@
 import * as app from './app'
 import { logger } from './logger';
 import { insertRecipe, pool, selectIngredient, selectRecipe, test_ } from './db';
-import { sanitizeRecipe } from './functions';
-import {Recipe, isRecipe} from './types'
+import { sanitizeRecipe, sanitizeRecipeSchema } from './functions';
+import {Recipe, RecipeSchema, isRecipe} from './types'
+import { parse_recipe_from_page } from './recipe_parser';
 
 export function home (_: any, res: any) {
   res.render('home.hbs', {message:"This was compiled on-site!"})
@@ -85,3 +86,37 @@ export async function getAllIngredients (req:any, res:any) {
   res.status(200).json({ingredients:ingredients})
 }
 
+export async function parseRecipe(req:any, res:any,) {
+  try {
+    const url = req.body.url
+    fetch(url)
+      .then((response) => {
+        return response.text()
+      })
+      .then((response) => {
+        let recipe:RecipeSchema = parse_recipe_from_page(response)
+        logger.log({
+          level: 'info',
+          message: `New recipe ${recipe.name} detected from ${url}!`
+        });
+        recipe = sanitizeRecipeSchema(recipe)
+      })
+      .catch((err) => {
+        logger.log({
+          level: 'error',
+          message: `Recipe parsing failed from ${url}. Error:\n${err}`
+        });    
+        res.status(500).json({error:'failure'})
+      })
+        //insertRecipe(sanitizeRecipe(recipe))
+        //res.status(200).json(recipe);
+  }
+  catch (e) {
+    logger.log({
+      level: 'error',
+      message: `Could not scrape recipe.`
+    });
+    res.status(500).json({error:"no"})
+  }
+
+}

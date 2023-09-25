@@ -1,4 +1,5 @@
 import * as cheerio from 'cheerio'
+import * as he from 'he'
 import { Ingredient, RecipeSchema, RecipeSchemaKeys } from './types'
 
 export function page_text_to_html(page:string):cheerio.CheerioAPI {
@@ -59,7 +60,6 @@ export function parse_recipe_ingredient(recipeIngredient: string[]) {
                     + Math.floor(Number(fraction[0])/Number(fraction[1]) * 100)/100
             } else if ((amount.groups.range) || (amount.groups.either)) {
                 let parts = (amount.groups.range || amount.groups.either).match(/\d+/g)
-                console.log(parts)
                 parsed_ingredient.amount = (Number(parts![0] || 0) + Number(parts![1] || 0)) / 2
             } else if (amount.groups.division) {
                 let parts = amount.groups.division.split(/\//)
@@ -74,7 +74,7 @@ export function parse_recipe_ingredient(recipeIngredient: string[]) {
             }
 
             if (amount.groups.rest) {
-                const UNITS: RegExp = /(?<unit>[mkc]?[gl]|cs|cc|c\.à\.s\.?|c\.à\.c\.?|cuill(?:e|è)re?s? à (?:café|soupe)|verres?|gousses?|poignées?|bouts?|tasses?|coupes?|pincées?|morceaux?|quartiers?|cups?) (?<rest>.*)/i
+                const UNITS: RegExp = /(?<!\w)(?<unit>[mkc]?[gl]|cs|cc|c\.à\.s\.?|c\.à\.c\.?|cuill(?:e|è)re?s? à (?:café|soupe)|verres?|gousses?|poignées?|bouts?|tasses?|coupes?|pincées?|morceaux?|quartiers?|cups?) (?<rest>.*)/i
 
                 let unit = amount.groups.rest.match(UNITS)
                 if ((unit) && ('groups' in unit) && (unit.groups != undefined) && (unit.groups.unit)) {
@@ -98,7 +98,7 @@ export function parse_recipe_ingredient(recipeIngredient: string[]) {
 
 function sanitizeIngredient(parsed_ingredient: Ingredient): Ingredient {
     let new_ingredient: Ingredient = {
-        name: parsed_ingredient.name
+        name: he.decode(parsed_ingredient.name
             .toLowerCase()
             .trim()
             .replace(/^(des?|du|of)(?= )/, "")
@@ -106,8 +106,8 @@ function sanitizeIngredient(parsed_ingredient: Ingredient): Ingredient {
             .replace(/^(la|les?)(?= )/, "")
             .trim()
             .replace(/^[dsl]\'/, "")
-            .replace(/^(\(.*\))/, "")
-            .trim()
+            .replace(/\(.*\)/, "")
+            .trim())
             ,
         amount: parsed_ingredient.amount,
         unit: parsed_ingredient.unit
