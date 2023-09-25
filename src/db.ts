@@ -1,5 +1,5 @@
 import { Pool } from 'pg'
-import { Ingredient, IngredientRaw, Recipe, isRecipe } from './types'
+import { Ingredient, IngredientRaw, Recipe, RecipeSchema, isRecipe } from './types'
 import * as dotenv from 'dotenv'
 import { logger } from './logger'
 import { getFoodData, sanitizeRecipe, sortIngredients, translateIngredient } from './functions'
@@ -18,6 +18,74 @@ export const pool = new Pool({
     port: 5432,
     host: 'localhost',
   })
+
+export async function insertRecipeSchema(recipe: RecipeSchema) {
+    try {
+        // Attempts to insert recipe
+        let response = await pool.query(`INSERT INTO \
+        ${test_}recipe(name,url,prepTime,cookTime,totalTime,recipeYield,recipeCategory,recipeCuisine) \
+        VALUES($1, $2, $3, $4, $5, $6, $7, $8) \
+        RETURNING recipe_id`, [
+            recipe.name, 
+            recipe.url, 
+            recipe.prepTime || "",
+            recipe.cookTime || "",
+            recipe.totalTime || "",
+            recipe.recipeYield || "",
+            recipe.recipeCategory || "",
+            recipe.recipeCuisine || "",
+        ])
+        let new_recipe_id = response.rows[0].recipe_id
+        logger.log({
+            level: 'info',
+            message: `Successfully created recipe with id ${new_recipe_id}`            
+        }) 
+
+        // Attempts to insert all ingredients  
+        let ingredients_id = await Promise.all((recipe.recipeIngredient || []).map(async (ingredient, index) => {
+            let check_ingredient = await pool.query(`SELECT ingredient_id \
+            FROM ${process.env.DB_ENV == 'test' ? "test_" :""}ingredient \
+            WHERE name = $1`, [ingredient.name])
+            let ingredient_id: number
+            if (check_ingredient.rows.length == 0) {
+                let insert_ingredient = await pool.query(`INSERT INTO \
+                ${test_}ingredient(name) \
+                VALUES($1) \
+                RETURNING ingredient_id`, [ingredient.name])
+                ingredient_id = insert_ingredient.rows[0].ingredient_id
+            } else {
+                ingredient_id = check_ingredient.rows[0].ingredient_id
+            }
+            await pool.query(
+                `INSERT INTO \
+                ${test_}recipe_ingredient(recipe_id,ingredient_id,amount,unit) \
+                VALUES($1, $2, $3, $4);`,
+                [
+                    new_recipe_id,
+                    ingredient_id,
+                    Math.floor(ingredient.amount * 100),
+                    ingredient.unit
+                ])
+            logger.log({
+                level: 'info',
+                message: `Successfully inserted ingredient ${index} in the database with id ${ingredient_id}`            
+            })
+            await addTranslatedName(ingredient_id)
+            await addFoodData(ingredient_id)
+            return ingredient_id
+        }))
+        logger.log({
+            level: 'info',
+            message: `Successfully inserted its ingredients in the database with ids ${ingredients_id}`            
+        })
+    } catch (e) {
+        logger.log({
+            level: 'error',
+            message: `Failed with insertion of recipe from ${recipe.url}\nError message is ${e}`            
+        })  
+        return undefined
+    }
+}
 
 
 export async function insertRecipe(unsanitized_recipe: any) {

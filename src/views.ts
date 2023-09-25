@@ -1,6 +1,6 @@
 import * as app from './app'
 import { logger } from './logger';
-import { insertRecipe, pool, selectIngredient, selectRecipe, test_ } from './db';
+import { insertRecipe, insertRecipeSchema, pool, selectIngredient, selectRecipe, test_ } from './db';
 import { sanitizeRecipe, sanitizeRecipeSchema } from './functions';
 import {Recipe, RecipeSchema, isRecipe} from './types'
 import { parse_recipe_from_page } from './recipe_parser';
@@ -101,6 +101,7 @@ export async function parseRecipe(req:any, res:any,) {
           message: `New recipe ${recipe.name} detected from ${url}!`
         });
         recipe = sanitizeRecipeSchema(recipe)
+        insertRecipeSchema(recipe)
       })
       .catch((err) => {
         logger.log({

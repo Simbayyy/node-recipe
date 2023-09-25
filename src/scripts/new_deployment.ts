@@ -39,14 +39,14 @@ async function add_admin_to_users() {
 
 async function adapt_recipe_table() {
     try {
-        const exists = await pool.query("ALTER TABLE recipe (\
+        const exists = await pool.query("ALTER TABLE recipe \
             ADD COLUMN prepTime VARCHAR(20),\
             ADD COLUMN cookTime VARCHAR(20),\
             ADD COLUMN totalTime VARCHAR(20),\
             ADD COLUMN recipeYield VARCHAR(50),\
             ADD COLUMN recipeCategory VARCHAR(50),\
             ADD COLUMN recipeCuisine VARCHAR(50)\
-            ")
+            ;")
         return 'added'
     }
     catch (err) {
