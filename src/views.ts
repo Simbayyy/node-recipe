@@ -95,6 +95,7 @@ export async function parseRecipe(req:any, res:any,) {
       })
       .then((response) => {
         let recipe:RecipeSchema = parse_recipe_from_page(response)
+        recipe.url = url
         logger.log({
           level: 'info',
           message: `New recipe ${recipe.name} detected from ${url}!`
