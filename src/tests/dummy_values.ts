@@ -122,10 +122,50 @@ export const dummyLDJSON = {
     "name": "Moms World Famous Banana Bread",
     "prepTime": "PT15M",
     "recipeIngredient": [
-        "3 or 4 ripe bananas, smashed",
-        "1 egg",
-        "3/4 cup of sugar",
+        {
+            "amount": 3.5,
+            "name": "ripe bananas, smashed",
+            "unit": "",
+        }, 
+        {
+            "amount": 1,
+            "name": "egg",
+            "unit": "",
+        },
+        {
+            "amount": 0.75,
+            "name": "sugar",
+            "unit": "cup",
+        }    
     ],
     "recipeInstructions": "Preheat the oven to 350 degrees. Mix in the ingredients in a bowl. Add the flour last. Pour the mixture into a loaf pan and bake for one hour.",
     "recipeYield": "1 loaf",
 }
+
+export const dummyIngredients = [
+    "2 à 3 morceaux de riz",
+    "1-5 quartiers d'orange",
+    "1 1/4 tasse de lait",
+    "1/2 pastèque",
+    "2.4cl jus de papaye",
+    "rien",
+    "2,4patates",
+    "1 1/3 verre"
+]
+
+export const dummyIngredientsResponse = [
+        [2.5,"morceaux", "riz"],
+        [3,"quartiers", "orange"],
+        [1.25,"tasse", "lait"],
+        [0.5, "", "pastèque"],
+        [2.4, "cl", "jus de papaye"],
+        [0, "", "rien"],
+        [2.4,"","patates"],
+        [1.33, "", "verre"],
+    ].map((elt) => {
+        return {
+            amount:elt[0],
+            name:elt[2],
+            unit:elt[1]
+    }
+})
