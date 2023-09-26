@@ -24,6 +24,3 @@ router.get('/check-admin', cors(), isAdmin, (req:any, res:any) => {
 })
 
 router.get('/ingredients', cors(), isAdmin, views.getAllIngredients)
-router.get('/testrecipe', cors(), (req:any, res:any) => {
-    res.sendFile(path.resolve(__dirname, 'test_static', 'dummy_page.html'));
-})
