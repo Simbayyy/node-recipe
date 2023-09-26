@@ -32,11 +32,7 @@ export async function getRecipe (req:any, res:any) {
   res.header("Access-Control-Allow-Origin", "*");
   try {
     let recipe = await selectRecipe(req.params.recipeId)
-    if (isRecipe(recipe)) {
-      res.status(200).json(recipe)
-    } else {
-      throw Error(`Selected object is not a recipe: ${JSON.stringify(recipe)}`)
-    }
+    res.status(200).json(recipe)
   }
   catch (e) {
     logger.log({

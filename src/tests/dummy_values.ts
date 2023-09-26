@@ -1,11 +1,8 @@
 export const dummyRecipe = {
     name:"Macaronis",
     url:"http://macaroni",
-    time: {
-        time: 10,
-        unit: "min"
-    },
-    ingredients: [
+    prepTime:"PT10M",
+    recipeIngredient: [
         {
             name: "pain",
             amount: 100,
@@ -16,21 +13,20 @@ export const dummyRecipe = {
             amount: 200,
             unit: "g"
         }
-    ]
+    ],
 }
 
 export const dummyResponse = {
     id:"1",
     name:"Macaronis",
     url:"http://macaroni",
-    time: {
-        time: 10,
-        unit: "min"
-    },
-    ingredients: [
+    prepTime:"PT10M",
+    cookTime:"",
+    totalTime:"",
+    recipeIngredient: [
         {
             name: "pain",
-            amount: 100,
+            amount: 10000,
             unit: "g",
             name_en:"bread",
             fdc_id: 325871,
@@ -38,13 +34,17 @@ export const dummyResponse = {
         },
         {
             name: "eau",
-            amount: 200,
+            amount: 20000,
             unit: "g",
             name_en:"water",
             fdc_id: 334194,
             high_confidence: true,
         }
-    ]
+    ],
+    recipeCategory: "",
+    recipeCuisine: "",
+    recipeInstructions: "",
+    recipeYield: ""
 }
 
 
@@ -59,11 +59,8 @@ export const dummyResponseIngredient = {
 export const dummyRecipe2 = {
     name:"Macaronis2",
     url:"http://macaroni2",
-    time: {
-        time: 10,
-        unit: "min"
-    },
-    ingredients: [
+    prepTime:"PT10M",
+    recipeIngredient: [
         {
             name: "eau",
             amount: 100,
@@ -75,11 +72,8 @@ export const dummyRecipe2 = {
 export const dummyNotRecipe = {
     title:"Macaronis",
     url:"http://macaroni",
-    time: {
-        time: 10,
-        unit: "min"
-    },
-    ingredients: [
+    prepTime:"PT10M",
+    recipeIngredient: [
         {
             name: "macaroni",
             amount: 100,

@@ -53,5 +53,6 @@
     "@types/passport": "^1.0.12",
     "@types/passport-local": "^1.0.35",
     "@types/pg": "^8.10.2"
-  }
+  },
+  "proxy":["http://localhost:3000"]
 }

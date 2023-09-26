@@ -30,7 +30,7 @@ export function sanitizeRecipeSchema(recipe: RecipeSchema): RecipeSchema {
                 }
                 return he.decode(instruction)
             }).join("\n")
-            : [recipe.recipeInstructions as string] || [""],
+            : recipe.recipeInstructions as string || "",
         recipeCuisine: "recipeCuisine" in recipe && Array.isArray(recipe.recipeCuisine)
             ? he.decode(recipe.recipeCuisine.join(' ; '))
             : he.decode(recipe.recipeCuisine as string || ""),
@@ -39,7 +39,14 @@ export function sanitizeRecipeSchema(recipe: RecipeSchema): RecipeSchema {
             : he.decode(recipe.recipeYield as string || ""),
         recipeCategory: "recipeCategory" in recipe && Array.isArray(recipe.recipeCategory)
             ? he.decode(recipe.recipeCategory.join(' ; '))
-            : he.decode(recipe.recipeCategory as string || "")
+            : he.decode(recipe.recipeCategory as string || ""),
+        recipeIngredient: recipe.recipeIngredient?.sort((a,b) => {
+            if (typeof a === 'string') {
+                return a < b ? 1 : -1
+            } else {
+                return a.name < b.name ? 1 : -1
+            }
+        })
     }
     return newrecipe
 }

@@ -39,6 +39,7 @@ export interface RecipeSchema {
     recipeCuisine?:string |string[],
     url?:string,
     recipeIngredient?: string[] | Ingredient[],
+    id?: number,
 }
 
 export const RecipeSchemaKeys = ["name",

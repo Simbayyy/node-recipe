@@ -2,7 +2,7 @@ import { Pool } from 'pg'
 import { Ingredient, IngredientRaw, Recipe, RecipeSchema, isRecipe } from './types'
 import * as dotenv from 'dotenv'
 import { logger } from './logger'
-import { getFoodData, sanitizeRecipe, sortIngredients, translateIngredient } from './functions'
+import { getFoodData, sanitizeRecipe, sanitizeRecipeSchema, sortIngredients, translateIngredient } from './functions'
 
 // Load environment variables
 dotenv.config({path: process.env.NODE_ENV == 'production' ? '.env' : '.env.development.local'})
@@ -21,6 +21,9 @@ export const pool = new Pool({
 
 export async function insertRecipeSchema(recipe: RecipeSchema) {
     try {
+        if (!(('name' in recipe) && ('url' in recipe))) {
+            throw Error('This is not a recipe')
+        }
         // Attempts to insert recipe
         let response = await pool.query(`INSERT INTO \
         ${test_}recipe(name,url,prepTime,cookTime,totalTime,recipeYield,recipeCategory,recipeCuisine) \
@@ -78,6 +81,7 @@ export async function insertRecipeSchema(recipe: RecipeSchema) {
             level: 'info',
             message: `Successfully inserted its ingredients in the database with ids ${ingredients_id}`            
         })
+        return response
     } catch (e) {
         logger.log({
             level: 'error',
@@ -173,22 +177,25 @@ export async function selectRecipe (recipeId: number) {
         const result = await pool.query(query, values);
 
         if (result.rows.length != 0){
-            let ingredients_id = await pool.query(`SELECT ri.recipe_id, i.name, ri.amount, ri.unit, i.name_en, i.fdc_id, i.high_confidence \
+            let ingredients_id = await pool.query(`SELECT i.name, ri.amount, ri.unit, i.name_en, i.fdc_id, i.high_confidence \
                 FROM ${test_}ingredient AS i \
                 INNER JOIN ${test_}recipe_ingredient AS ri\
                 ON ri.recipe_id = $1\
                 WHERE i.ingredient_id = ri.ingredient_id;`, [recipeId])
-            let time = await pool.query(`SELECT time, unit \
-                FROM ${test_}recipe_time \
-                WHERE recipe_id = $1;`, [recipeId])
-            let recipe:Recipe = {
+            let recipe: RecipeSchema = {
                 name: result.rows[0].name,
                 url: result.rows[0].url,
-                time: {time:time.rows[0].time,unit:time.rows[0].unit},
-                ingredients: ingredients_id.rows,
+                prepTime: result.rows[0].preptime,
+                cookTime: result.rows[0].cooktime,
+                totalTime: result.rows[0].totaltime,
+                recipeCuisine: result.rows[0].recipeCuisine,
+                recipeInstructions: result.rows[0].recipeInstructions,
+                recipeCategory: result.rows[0].recipeCategory,
+                recipeYield: result.rows[0].recipeYield,
+                recipeIngredient: ingredients_id.rows,
                 id:recipeId
-            } 
-            return sanitizeRecipe(recipe)
+            }
+            return sanitizeRecipeSchema(recipe)
         } else {
             throw Error("No recipe found")
         }
@@ -197,7 +204,7 @@ export async function selectRecipe (recipeId: number) {
             level:'error',
             message:`Could not fetch recipe\nError: ${e}`
         })
-        return {}
+        throw Error(`Could not fetch recipe. Error:\n${e}`)
     }
 } 
 
