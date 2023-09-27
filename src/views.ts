@@ -96,7 +96,15 @@ export async function parseRecipe(req:any, res:any,) {
           message: `New recipe ${recipe.name} detected from ${url}!`
         });
         recipe = sanitizeRecipeSchema(recipe)
-        insertRecipeSchema(recipe)
+        return insertRecipeSchema(recipe)
+      })
+      .then((insertion) => {
+        if (insertion) {
+          return selectRecipe(insertion.rows[0].recipe_id)
+        } else throw Error('New recipe insertion failed')
+      })
+      .then((recipe) => {
+        res.status(200).json(recipe)
       })
       .catch((err) => {
         logger.log({

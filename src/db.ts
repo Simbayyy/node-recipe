@@ -45,7 +45,19 @@ export async function insertRecipeSchema(recipe: RecipeSchema) {
         }) 
 
         // Attempts to insert all ingredients  
-        let ingredients_id = await Promise.all((recipe.recipeIngredient || []).map(async (ingredient, index) => {
+        let ingredients_first_pass = (recipe.recipeIngredient as Ingredient[] || []).filter((elt,index, arr) => {
+            return index === arr.findIndex(object=>{
+                return object.name == elt.name
+            })
+        })
+
+        let ingredients_second_pass = (recipe.recipeIngredient as Ingredient[] || []).filter((elt,index, arr) => {
+            return index !== arr.findIndex(object=>{
+                return object.name == elt.name
+            })
+        })
+
+        async function insertIngredient (ingredient:Ingredient, index:number, array?: Ingredient[]) {
             let check_ingredient = await pool.query(`SELECT ingredient_id \
             FROM ${process.env.DB_ENV == 'test' ? "test_" :""}ingredient \
             WHERE name = $1`, [ingredient.name])
@@ -76,10 +88,13 @@ export async function insertRecipeSchema(recipe: RecipeSchema) {
             await addTranslatedName(ingredient_id)
             await addFoodData(ingredient_id)
             return ingredient_id
-        }))
+        }        
+        
+        const ingredients_id = await Promise.all(ingredients_first_pass.map(insertIngredient))
+        const ingredients_id_2 = await Promise.all(ingredients_second_pass.map(insertIngredient))
         logger.log({
             level: 'info',
-            message: `Successfully inserted its ingredients in the database with ids ${ingredients_id}`            
+            message: `Successfully inserted its ingredients in the database with ids ${ingredients_id}, ${ingredients_id_2}`            
         })
         return response
     } catch (e) {
@@ -90,6 +105,8 @@ export async function insertRecipeSchema(recipe: RecipeSchema) {
         return undefined
     }
 }
+
+
 
 
 export async function insertRecipe(unsanitized_recipe: any) {
