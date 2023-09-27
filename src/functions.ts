@@ -28,18 +28,18 @@ export function sanitizeRecipeSchema(recipe: RecipeSchema): RecipeSchema {
                 } else {
                     instruction = ('text' in elt && elt.text as string) || ('name' in elt && elt.name as string) || ""
                 }
-                return he.decode(instruction)
+                return he.decode(String(instruction))
             }).join("\n")
             : recipe.recipeInstructions as string || "",
         recipeCuisine: "recipeCuisine" in recipe && Array.isArray(recipe.recipeCuisine)
-            ? he.decode(recipe.recipeCuisine.join(' ; '))
-            : he.decode(recipe.recipeCuisine as string || ""),
+            ? he.decode(String(recipe.recipeCuisine.join(' ; ')))
+            : he.decode(String(recipe.recipeCuisine as string || "")),
         recipeYield: "recipeYield" in recipe && Array.isArray(recipe.recipeYield)
-            ? he.decode(recipe.recipeYield.join(' ; '))
-            : he.decode(recipe.recipeYield as string || ""),
+            ? he.decode(String(recipe.recipeYield.join(' ; ')))
+            : he.decode(String(recipe.recipeYield as string || "")),
         recipeCategory: "recipeCategory" in recipe && Array.isArray(recipe.recipeCategory)
-            ? he.decode(recipe.recipeCategory.join(' ; '))
-            : he.decode(recipe.recipeCategory as string || ""),
+            ? he.decode(String(recipe.recipeCategory.join(' ; ')))
+            : he.decode(String(recipe.recipeCategory as string || "")),
         recipeIngredient: recipe.recipeIngredient?.sort((a,b) => {
             if (typeof a === 'string') {
                 return a < b ? 1 : -1

@@ -36,4 +36,5 @@ export async function reset_db() {
         CONSTRAINT fk_recipe FOREIGN KEY(recipe_id) REFERENCES recipe(recipe_id),\
         CONSTRAINT fk_ingredient FOREIGN KEY(ingredient_id) REFERENCES ingredient(ingredient_id)\
         );")
+    return 'done'
 }

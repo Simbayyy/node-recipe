@@ -1,5 +1,6 @@
 import { pool } from "../db";
 import { logger } from "../logger"
+import { reset_db } from "./reset_db";
 
 logger.log({
     level:'info',
@@ -55,7 +56,6 @@ async function adapt_recipe_table() {
 
 }
 
-
 async function drop_time_table() {
     try {
         const exists = await pool.query("DROP TABLE recipe_time")
@@ -84,4 +84,12 @@ adapt_recipe_table().then((res) => logger.log({
 drop_time_table().then((res) => logger.log({
     level:'info',
     message:`Time table ${res}`
+}))
+
+reset_db().then((res) => logger.log({
+    level:'info',
+    message:`Time table ${res}`
+})).catch((err) => logger.log({
+    level:'error',
+    message:`${err}`
 }))

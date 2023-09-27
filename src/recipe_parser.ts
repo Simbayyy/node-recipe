@@ -97,24 +97,28 @@ export function parse_recipe_ingredient(recipeIngredient: string[]) {
 }
 
 function sanitizeIngredient(parsed_ingredient: Ingredient): Ingredient {
-    let new_ingredient: Ingredient = {
-        name: he.decode(parsed_ingredient.name
-            .toLowerCase()
-            .trim()
-            .replace(/^(des?|du|of)(?= )/, "")
-            .trim()
-            .replace(/^(la|les?)(?= )/, "")
-            .trim()
-            .replace(/^[dsl]\'/, "")
-            .replace(/\(.*\)/, "")
-            .trim())
-            ,
-        amount: parsed_ingredient.amount,
-        unit: parsed_ingredient.unit
-            .replace(/cuill(?:e|è)re?s? à café/, "cc")
-            .replace(/cuill(?:e|è)re?s? à soupe/, "cs")
-            .replace(/c\.à\.c\.?/, "cc")
-            .replace(/c\.à\.s\.?/, "cs")
+    try {
+        let new_ingredient: Ingredient = {
+            name: he.decode(String(parsed_ingredient.name)
+                .toLowerCase()
+                .trim()
+                .replace(/^(des?|du|of)(?= )/, "")
+                .trim()
+                .replace(/^(la|les?)(?= )/, "")
+                .trim()
+                .replace(/^[dsl]\'/, "")
+                .replace(/\(.*\)/, "")
+                .trim())
+                ,
+            amount: parsed_ingredient.amount,
+            unit: parsed_ingredient.unit
+                .replace(/cuill(?:e|è)re?s? à café/, "cc")
+                .replace(/cuill(?:e|è)re?s? à soupe/, "cs")
+                .replace(/c\.à\.c\.?/, "cc")
+                .replace(/c\.à\.s\.?/, "cs")
+        }
+        return new_ingredient
+    } catch (err) {
+        throw Error(`Could not sanitize ingredient ${JSON.stringify(parsed_ingredient)}. Error:\n${err}`)
     }
-    return new_ingredient
 }
