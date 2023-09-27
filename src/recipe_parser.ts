@@ -74,10 +74,10 @@ export function parse_recipe_ingredient(recipeIngredient: string[]) {
             }
 
             if (amount.groups.rest) {
-                const UNITS: RegExp = /(?<!\w)(?<unit>[mkc]?[gl]|cs|cc|c\.à\.s\.?|c\.à\.c\.?|cuill(?:e|è)re?s? à (?:café|soupe)|verres?|gousses?|poignées?|bouts?|tasses?|coupes?|pincées?|morceaux?|quartiers?|cups?) (?<rest>.*)/i
+                const UNITS: RegExp = /(?<!\w)(?<unit>[mkc]?[gl](?=[ \.])|cs|cc|c\.à\.s\.?|c\.à\.c\.?|cuill(?:e|è)re?s? à (?:café|soupe)|verres?|pièces?|gousses?|poignées?|bouts?|tasses?|coupes?|pincées?|morceaux?|quartiers?|cups?)(\(s\))?[^\w](?<rest>.*)/i
 
                 let unit = amount.groups.rest.match(UNITS)
-                if ((unit) && ('groups' in unit) && (unit.groups != undefined) && (unit.groups.unit)) {
+                if ((unit) && ('groups' in unit) && (unit.groups != undefined) && (unit.groups.unit != "")) {
                     parsed_ingredient.unit = unit.groups.unit
                     if (unit.groups.rest) {
                         parsed_ingredient.name = unit.groups.rest
@@ -88,10 +88,8 @@ export function parse_recipe_ingredient(recipeIngredient: string[]) {
                     parsed_ingredient.name = amount.groups.rest
                 }
             }
-
             parsed_ingredient = sanitizeIngredient(parsed_ingredient)
         }
-
         return parsed_ingredient 
     })
 }
@@ -106,8 +104,8 @@ function sanitizeIngredient(parsed_ingredient: Ingredient): Ingredient {
                 .trim()
                 .replace(/^(la|les?)(?= )/, "")
                 .trim()
-                .replace(/^[dsl]\'/, "")
-                .replace(/\(.*\)/, "")
+                .replace(/^[dsl]\'/g, "")
+                .replace(/\([^\)]+\)/, "")
                 .trim()
                 ,
             amount: parsed_ingredient.amount,
