@@ -99,7 +99,7 @@ export function parse_recipe_ingredient(recipeIngredient: string[]) {
 function sanitizeIngredient(parsed_ingredient: Ingredient): Ingredient {
     try {
         let new_ingredient: Ingredient = {
-            name: he.decode(String(parsed_ingredient.name)
+            name: he.decode(String(parsed_ingredient.name))
                 .toLowerCase()
                 .trim()
                 .replace(/^(des?|du|of)(?= )/, "")
@@ -108,7 +108,7 @@ function sanitizeIngredient(parsed_ingredient: Ingredient): Ingredient {
                 .trim()
                 .replace(/^[dsl]\'/, "")
                 .replace(/\(.*\)/, "")
-                .trim())
+                .trim()
                 ,
             amount: parsed_ingredient.amount,
             unit: parsed_ingredient.unit
