@@ -19,7 +19,7 @@ export function sanitizeRecipe (recipe: Recipe): Recipe {
 export function sanitizeRecipeSchema (recipe: RecipeSchema): RecipeSchema {
   const newrecipe: RecipeSchema = {
     ...recipe,
-    recipeInstructions: 'recipeInstructions' in recipe && Array.isArray(recipe.recipeInstructions)
+    recipeInstructions: ('recipeInstructions' in recipe && Array.isArray(recipe.recipeInstructions)
       ? recipe.recipeInstructions.map((elt) => {
         let instruction: string
         if (typeof elt === 'string') {
@@ -29,16 +29,16 @@ export function sanitizeRecipeSchema (recipe: RecipeSchema): RecipeSchema {
         }
         return he.decode(String(instruction))
       }).join('\n')
-      : recipe.recipeInstructions ?? "",
-    recipeCuisine: 'recipeCuisine' in recipe && Array.isArray(recipe.recipeCuisine)
+      : recipe.recipeInstructions ?? "").slice(0,1000),
+    recipeCuisine: ('recipeCuisine' in recipe && Array.isArray(recipe.recipeCuisine)
       ? he.decode(String(recipe.recipeCuisine.join(' ; ')))
-      : he.decode(String(recipe.recipeCuisine ?? '')),
-    recipeYield: 'recipeYield' in recipe && Array.isArray(recipe.recipeYield)
+      : he.decode(String(recipe.recipeCuisine ?? ''))).slice(0,500),
+    recipeYield: ('recipeYield' in recipe && Array.isArray(recipe.recipeYield)
       ? he.decode(String(recipe.recipeYield.join(' ; ')))
-      : he.decode(String(recipe.recipeYield ?? '')),
-    recipeCategory: 'recipeCategory' in recipe && Array.isArray(recipe.recipeCategory)
+      : he.decode(String(recipe.recipeYield ?? ''))).slice(0,500),
+    recipeCategory: ('recipeCategory' in recipe && Array.isArray(recipe.recipeCategory)
       ? he.decode(String(recipe.recipeCategory.join(' ; ')))
-      : he.decode(String(recipe.recipeCategory ?? '')),
+      : he.decode(String(recipe.recipeCategory ?? ''))).slice(0,500),
     recipeIngredient: recipe.recipeIngredient?.sort((a, b) => {
       if (typeof a === 'string') {
         return a < b ? 1 : -1

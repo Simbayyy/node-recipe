@@ -18,6 +18,7 @@ beforeAll(async () => {
             totalTime VARCHAR(20),\
             recipeYield VARCHAR(50),\
             recipeCategory VARCHAR(50),\
+            recipeInstructions VARCHAR(1000),\
             recipeCuisine VARCHAR(50)\
             );")
         await pool.query("CREATE TABLE test_ingredient (\
