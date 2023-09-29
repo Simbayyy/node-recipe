@@ -26,8 +26,8 @@ export async function insertRecipeSchema (recipe: RecipeSchema): Promise<QueryRe
     }
     // Attempts to insert recipe
     const response = await pool.query(`INSERT INTO \
-        ${test_}recipe(name,url,prepTime,cookTime,totalTime,recipeYield,recipeCategory,recipeCuisine) \
-        VALUES($1, $2, $3, $4, $5, $6, $7, $8) \
+        ${test_}recipe(name,url,prepTime,cookTime,totalTime,recipeYield,recipeInstructions,recipeCategory,recipeCuisine) \
+        VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9) \
         RETURNING recipe_id`, [
       recipe.name,
       recipe.url,
@@ -35,6 +35,7 @@ export async function insertRecipeSchema (recipe: RecipeSchema): Promise<QueryRe
       recipe.cookTime ?? '',
       recipe.totalTime ?? '',
       recipe.recipeYield ?? '',
+      recipe.recipeInstructions ?? '',
       recipe.recipeCategory ?? '',
       recipe.recipeCuisine ?? ''
     ])
@@ -189,7 +190,6 @@ export async function selectRecipe (recipeId: number): Promise<RecipeSchema> {
     const values = [recipeId]
 
     const result = await pool.query(query, values)
-
     if (result.rows.length !== 0) {
       const ingredientsId = await pool.query(`SELECT i.name, ri.amount, ri.unit, i.name_en, i.fdc_id, i.high_confidence \
                 FROM ${test_}ingredient AS i \
@@ -202,10 +202,10 @@ export async function selectRecipe (recipeId: number): Promise<RecipeSchema> {
         prepTime: result.rows[0].preptime,
         cookTime: result.rows[0].cooktime,
         totalTime: result.rows[0].totaltime,
-        recipeCuisine: result.rows[0].recipeCuisine,
-        recipeInstructions: result.rows[0].recipeInstructions,
-        recipeCategory: result.rows[0].recipeCategory,
-        recipeYield: result.rows[0].recipeYield,
+        recipeCuisine: result.rows[0].recipecuisine,
+        recipeInstructions: result.rows[0].recipeinstructions,
+        recipeCategory: result.rows[0].recipecategory,
+        recipeYield: result.rows[0].recipeyield,
         recipeIngredient: ingredientsId.rows,
         id: recipeId
       }

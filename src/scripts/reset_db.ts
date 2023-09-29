@@ -17,6 +17,7 @@ export async function reset_db() {
         cookTime VARCHAR(20),\
         totalTime VARCHAR(20),\
         recipeYield VARCHAR(500),\
+        recipeInstructions VARCHAR(1000),\
         recipeCategory VARCHAR(500),\
         recipeCuisine VARCHAR(500)\
         );")
