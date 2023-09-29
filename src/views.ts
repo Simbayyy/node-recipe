@@ -1,8 +1,9 @@
 import * as app from './app'
 import { logger } from './logger';
-import { insertRecipe, pool, selectIngredient, selectRecipe, test_ } from './db';
-import { sanitizeRecipe } from './functions';
-import {Recipe, isRecipe} from './types'
+import { insertRecipe, insertRecipeSchema, pool, selectIngredient, selectRecipe, test_ } from './db';
+import { sanitizeRecipe, sanitizeRecipeSchema } from './functions';
+import {Recipe, RecipeSchema, isRecipe} from './types'
+import { parse_recipe_from_page } from './recipe_parser';
 
 export function home (_: any, res: any) {
   res.render('home.hbs', {message:"This was compiled on-site!"})
@@ -23,19 +24,14 @@ export async function getAllRecipes (req:any, res:any) {
   res.header("Access-Control-Allow-Origin", "*");
   let all_recipe_ids = await pool.query('SELECT recipe_id FROM recipe')
   let recipes = await Promise.all(all_recipe_ids.rows.map((id) => {return selectRecipe(id.recipe_id)}))
-  let filter_recipes = recipes.filter(isRecipe)  
-  res.status(200).json({recipes:filter_recipes})
+  res.status(200).json({recipes:recipes})
 }
 
 export async function getRecipe (req:any, res:any) {
   res.header("Access-Control-Allow-Origin", "*");
   try {
     let recipe = await selectRecipe(req.params.recipeId)
-    if (isRecipe(recipe)) {
-      res.status(200).json(recipe)
-    } else {
-      throw Error(`Selected object is not a recipe: ${JSON.stringify(recipe)}`)
-    }
+    res.status(200).json(recipe)
   }
   catch (e) {
     logger.log({
@@ -85,3 +81,47 @@ export async function getAllIngredients (req:any, res:any) {
   res.status(200).json({ingredients:ingredients})
 }
 
+export async function parseRecipe(req:any, res:any,) {
+  try {
+    const url = req.body.url
+    fetch(url)
+      .then((response) => {
+        return response.text()
+      })
+      .then((response) => {
+        let recipe:RecipeSchema = parse_recipe_from_page(response)
+        recipe.url = url
+        logger.log({
+          level: 'info',
+          message: `New recipe ${recipe.name} detected from ${url}!`
+        });
+        recipe = sanitizeRecipeSchema(recipe)
+        return insertRecipeSchema(recipe)
+      })
+      .then((insertion) => {
+        if (insertion) {
+          return selectRecipe(insertion.rows[0].recipe_id)
+        } else throw Error('New recipe insertion failed')
+      })
+      .then((recipe) => {
+        res.status(200).json(recipe)
+      })
+      .catch((err) => {
+        logger.log({
+          level: 'error',
+          message: `Recipe parsing failed from ${url}. Error:\n${err}`
+        });    
+        res.status(500).json({error:'failure'})
+      })
+        //insertRecipe(sanitizeRecipe(recipe))
+        //res.status(200).json(recipe);
+  }
+  catch (e) {
+    logger.log({
+      level: 'error',
+      message: `Could not scrape recipe.`
+    });
+    res.status(500).json({error:"no"})
+  }
+
+}

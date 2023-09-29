@@ -1,8 +1,8 @@
 import { Pool } from 'pg'
-import { Ingredient, IngredientRaw, Recipe, isRecipe } from './types'
+import { Ingredient, IngredientRaw, Recipe, RecipeSchema, isRecipe } from './types'
 import * as dotenv from 'dotenv'
 import { logger } from './logger'
-import { getFoodData, sanitizeRecipe, sortIngredients, translateIngredient } from './functions'
+import { getFoodData, sanitizeRecipe, sanitizeRecipeSchema, sortIngredients, translateIngredient } from './functions'
 
 // Load environment variables
 dotenv.config({path: process.env.NODE_ENV == 'production' ? '.env' : '.env.development.local'})
@@ -18,6 +18,95 @@ export const pool = new Pool({
     port: 5432,
     host: 'localhost',
   })
+
+export async function insertRecipeSchema(recipe: RecipeSchema) {
+    try {
+        if (!(('name' in recipe) && ('url' in recipe))) {
+            throw Error('This is not a recipe')
+        }
+        // Attempts to insert recipe
+        let response = await pool.query(`INSERT INTO \
+        ${test_}recipe(name,url,prepTime,cookTime,totalTime,recipeYield,recipeCategory,recipeCuisine) \
+        VALUES($1, $2, $3, $4, $5, $6, $7, $8) \
+        RETURNING recipe_id`, [
+            recipe.name, 
+            recipe.url, 
+            recipe.prepTime || "",
+            recipe.cookTime || "",
+            recipe.totalTime || "",
+            recipe.recipeYield || "",
+            recipe.recipeCategory || "",
+            recipe.recipeCuisine || "",
+        ])
+        let new_recipe_id = response.rows[0].recipe_id
+        logger.log({
+            level: 'info',
+            message: `Successfully created recipe with id ${new_recipe_id}`            
+        }) 
+
+        // Attempts to insert all ingredients  
+        let ingredients_first_pass = (recipe.recipeIngredient as Ingredient[] || []).filter((elt,index, arr) => {
+            return index === arr.findIndex(object=>{
+                return object.name == elt.name
+            })
+        })
+
+        let ingredients_second_pass = (recipe.recipeIngredient as Ingredient[] || []).filter((elt,index, arr) => {
+            return index !== arr.findIndex(object=>{
+                return object.name == elt.name
+            })
+        })
+
+        async function insertIngredient (ingredient:Ingredient, index:number, array?: Ingredient[]) {
+            let check_ingredient = await pool.query(`SELECT ingredient_id \
+            FROM ${process.env.DB_ENV == 'test' ? "test_" :""}ingredient \
+            WHERE name = $1`, [ingredient.name])
+            let ingredient_id: number
+            if (check_ingredient.rows.length == 0) {
+                let insert_ingredient = await pool.query(`INSERT INTO \
+                ${test_}ingredient(name) \
+                VALUES($1) \
+                RETURNING ingredient_id`, [ingredient.name])
+                ingredient_id = insert_ingredient.rows[0].ingredient_id
+            } else {
+                ingredient_id = check_ingredient.rows[0].ingredient_id
+            }
+            await pool.query(
+                `INSERT INTO \
+                ${test_}recipe_ingredient(recipe_id,ingredient_id,amount,unit) \
+                VALUES($1, $2, $3, $4);`,
+                [
+                    new_recipe_id,
+                    ingredient_id,
+                    Math.floor(ingredient.amount * 100),
+                    ingredient.unit
+                ])
+            logger.log({
+                level: 'info',
+                message: `Successfully inserted ingredient ${index} in the database with id ${ingredient_id}`            
+            })
+            await addTranslatedName(ingredient_id)
+            await addFoodData(ingredient_id)
+            return ingredient_id
+        }        
+        
+        const ingredients_id = await Promise.all(ingredients_first_pass.map(insertIngredient))
+        const ingredients_id_2 = await Promise.all(ingredients_second_pass.map(insertIngredient))
+        logger.log({
+            level: 'info',
+            message: `Successfully inserted its ingredients in the database with ids ${ingredients_id}, ${ingredients_id_2}`            
+        })
+        return response
+    } catch (e) {
+        logger.log({
+            level: 'error',
+            message: `Failed with insertion of recipe from ${recipe.url}\nError message is ${e}`            
+        })  
+        return undefined
+    }
+}
+
+
 
 
 export async function insertRecipe(unsanitized_recipe: any) {
@@ -105,22 +194,25 @@ export async function selectRecipe (recipeId: number) {
         const result = await pool.query(query, values);
 
         if (result.rows.length != 0){
-            let ingredients_id = await pool.query(`SELECT ri.recipe_id, i.name, ri.amount, ri.unit, i.name_en, i.fdc_id, i.high_confidence \
+            let ingredients_id = await pool.query(`SELECT i.name, ri.amount, ri.unit, i.name_en, i.fdc_id, i.high_confidence \
                 FROM ${test_}ingredient AS i \
                 INNER JOIN ${test_}recipe_ingredient AS ri\
                 ON ri.recipe_id = $1\
                 WHERE i.ingredient_id = ri.ingredient_id;`, [recipeId])
-            let time = await pool.query(`SELECT time, unit \
-                FROM ${test_}recipe_time \
-                WHERE recipe_id = $1;`, [recipeId])
-            let recipe:Recipe = {
+            let recipe: RecipeSchema = {
                 name: result.rows[0].name,
                 url: result.rows[0].url,
-                time: {time:time.rows[0].time,unit:time.rows[0].unit},
-                ingredients: ingredients_id.rows,
+                prepTime: result.rows[0].preptime,
+                cookTime: result.rows[0].cooktime,
+                totalTime: result.rows[0].totaltime,
+                recipeCuisine: result.rows[0].recipeCuisine,
+                recipeInstructions: result.rows[0].recipeInstructions,
+                recipeCategory: result.rows[0].recipeCategory,
+                recipeYield: result.rows[0].recipeYield,
+                recipeIngredient: ingredients_id.rows,
                 id:recipeId
-            } 
-            return sanitizeRecipe(recipe)
+            }
+            return sanitizeRecipeSchema(recipe)
         } else {
             throw Error("No recipe found")
         }
@@ -129,7 +221,7 @@ export async function selectRecipe (recipeId: number) {
             level:'error',
             message:`Could not fetch recipe\nError: ${e}`
         })
-        return {}
+        throw Error(`Could not fetch recipe. Error:\n${e}`)
     }
 } 
 

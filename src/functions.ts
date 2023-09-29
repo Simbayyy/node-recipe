@@ -1,6 +1,8 @@
 import { logger } from "./logger";
-import { Ingredient, Recipe } from "./types";
+import { parse_recipe_from_page } from "./recipe_parser";
+import { Ingredient, Recipe, RecipeSchema } from "./types";
 import * as deepl from 'deepl-node'
+import * as he from 'he'
 
 export function sanitizeRecipe(recipe: Recipe): Recipe {
     let newrecipe: Recipe = {
@@ -11,6 +13,40 @@ export function sanitizeRecipe(recipe: Recipe): Recipe {
                 t.name === value.name
             ))
         ).map(lintIngredient).sort(sortIngredients),
+    }
+    return newrecipe
+}
+
+export function sanitizeRecipeSchema(recipe: RecipeSchema): RecipeSchema {
+    let newrecipe: RecipeSchema = {
+        ...recipe,
+        recipeInstructions: "recipeInstructions" in recipe && Array.isArray(recipe.recipeInstructions) 
+            ? recipe.recipeInstructions.map((elt) => {
+                let instruction: string
+                if (typeof elt === 'string') {
+                    instruction =  elt
+                } else {
+                    instruction = ('text' in elt && elt.text as string) || ('name' in elt && elt.name as string) || ""
+                }
+                return he.decode(String(instruction))
+            }).join("\n")
+            : recipe.recipeInstructions as string || "",
+        recipeCuisine: "recipeCuisine" in recipe && Array.isArray(recipe.recipeCuisine)
+            ? he.decode(String(recipe.recipeCuisine.join(' ; ')))
+            : he.decode(String(recipe.recipeCuisine as string || "")),
+        recipeYield: "recipeYield" in recipe && Array.isArray(recipe.recipeYield)
+            ? he.decode(String(recipe.recipeYield.join(' ; ')))
+            : he.decode(String(recipe.recipeYield as string || "")),
+        recipeCategory: "recipeCategory" in recipe && Array.isArray(recipe.recipeCategory)
+            ? he.decode(String(recipe.recipeCategory.join(' ; ')))
+            : he.decode(String(recipe.recipeCategory as string || "")),
+        recipeIngredient: recipe.recipeIngredient?.sort((a,b) => {
+            if (typeof a === 'string') {
+                return a < b ? 1 : -1
+            } else {
+                return a.name < b.name ? 1 : -1
+            }
+        })
     }
     return newrecipe
 }
@@ -87,4 +123,21 @@ export async function getFoodData (name: string) {
             }
         }
     return response
+}
+
+export function get_schema_from_url(url:string) {
+    let schema = fetch(url)
+        .then((response) => {
+            return response.text()
+        })
+        .then((response) => {
+            return parse_recipe_from_page(response) 
+        })
+        .catch((err) => {
+            logger.log({
+                level:'error',
+                message:`Could not get schema from URL ${url}. Error:\n${err}`
+            })
+        })
+    return schema
 }

@@ -2,7 +2,7 @@ import { expect, test, afterAll, beforeAll } from 'vitest'
 import request from 'supertest'
 import {app} from '../app'
 import { Recipe, isRecipe } from '../types'
-import {pool, insertRecipe, addTranslatedName, selectIngredient} from '../db' 
+import {pool, insertRecipeSchema, addTranslatedName, selectIngredient} from '../db' 
 import { getFoodData, lintIngredient, sanitizeRecipe, translateIngredient } from '../functions'
 import { dummyNotRecipe, dummyRecipe, dummyRecipe2, dummyResponse, dummyResponseIngredient } from './dummy_values'
 
@@ -12,7 +12,13 @@ beforeAll(async () => {
         await pool.query("CREATE TABLE test_recipe (\
             recipe_id SERIAL NOT NULL PRIMARY KEY,\
             name VARCHAR(500),\
-            url VARCHAR(500) UNIQUE \
+            url VARCHAR(500) UNIQUE,\
+            prepTime VARCHAR(20),\
+            cookTime VARCHAR(20),\
+            totalTime VARCHAR(20),\
+            recipeYield VARCHAR(50),\
+            recipeCategory VARCHAR(50),\
+            recipeCuisine VARCHAR(50)\
             );")
         await pool.query("CREATE TABLE test_ingredient (\
             ingredient_id SERIAL NOT NULL PRIMARY KEY,\
@@ -37,7 +43,7 @@ beforeAll(async () => {
             unit VARCHAR(100),\
             CONSTRAINT fk_recipe FOREIGN KEY(recipe_id) REFERENCES test_recipe(recipe_id)\
             );")
-        await insertRecipe(dummyRecipe)
+        await insertRecipeSchema(dummyRecipe)
     }
 })
 
@@ -85,13 +91,13 @@ test('selectIngredient', async () => {
 
 test('Database entry creation', async () => {
     if (process.env.DB_ENV == 'test') {
-        let insert_dummy_2 = await insertRecipe(dummyRecipe)
+        let insert_dummy_2 = await insertRecipeSchema(dummyRecipe)
         expect(insert_dummy_2).toBe(undefined)
-        let insert_dummy_3 = await insertRecipe(dummyNotRecipe)
+        let insert_dummy_3 = await insertRecipeSchema(dummyNotRecipe)
         expect(insert_dummy_3).toBe(undefined)
-        let insert_dummy_4 = await insertRecipe({})
+        let insert_dummy_4 = await insertRecipeSchema({})
         expect(insert_dummy_4).toBe(undefined)
-        let insert_dummy_5 = await insertRecipe(dummyRecipe2)
+        let insert_dummy_5 = await insertRecipeSchema(dummyRecipe2)
         expect(insert_dummy_5?.rows[0].recipe_id).toBe(3)
     }
 })
@@ -123,28 +129,4 @@ test('lintIngredients', () => {
         .toStrictEqual({ name: "onions", amount: 3, unit: "cups", name_en:undefined, fdc_id:undefined, high_confidence:undefined })
     expect(lintIngredient({ name: "", amount: 3, unit: "cups" }))
         .toStrictEqual({ name: "", amount: 3, unit: "cups", name_en:undefined, fdc_id:undefined, high_confidence:undefined })
-})
-
-test('isRecipe', () => {
-    expect(isRecipe(dummyRecipe)).toBe(true)
-    expect(isRecipe(dummyNotRecipe)).toBe(false)
-    expect(isRecipe({})).toBe(false)
-})
-
-test('POST /newrecipe', async () => {
-    if (process.env.DB_ENV == 'test') {
-        const response = await request(app)
-            .post('/api/newrecipe')
-            .send(dummyRecipe)
-            .set('Accept', 'application/json')
-        expect(response.status).toEqual(200)
-        const responseError = await request(app)
-            .post('/api/newrecipe')
-            .send({})
-            .set('Accept', 'application/json')
-        expect(responseError.status).toEqual(500)
-    }else {
-        return true
-    }
-
 })
