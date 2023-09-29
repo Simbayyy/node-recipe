@@ -11,9 +11,9 @@ test('parse ld-json script', () => {
 test('parse ingredient', () => {
     expect(parse_recipe_ingredient(dummyIngredients)).toStrictEqual(dummyIngredientsResponse)
     expect(parse_recipe_ingredient(["1 tasse de lait(s) froid"]))
-        .toStrictEqual({
+        .toStrictEqual([{
             amount: 1,
             unit:'tasse',
             name:"lait froid"
-        })
+        }])
 })
