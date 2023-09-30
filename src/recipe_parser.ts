@@ -50,7 +50,8 @@ export function parseRecipeIngredient (recipeIngredient: string[]): Ingredient[]
       amount: 0,
       unit: ''
     }
-    const amount = ingredient.match(/^((?<fraction>\d+ \d\/[1-9])|(?<division>\d\/[1-9])|(?<decimal>\d+[.,]\d+)|(?<range>\d+-\d+)|(?<either>\d+ (or|ou|à|to) \d+)|(?<number>\d+(?! ?\d?\/))|(?<nothing>(?!\d)))(?<rest>.*)/)
+    const ingredientWithoutParenthesis = ingredient.replace(/\([^)]+\)/g, '')
+    const amount = ingredientWithoutParenthesis.match(/^((?<fraction>\d+ \d\/[1-9])|(?<division>\d\/[1-9])|(?<decimal>\d+[.,]\d+)|(?<range>\d+-\d+)|(?<either>\d+ (or|ou|à|to) \d+)|(?<number>\d+(?! ?\d?\/))|(?<nothing>(?!\d)))(?<rest>.*)/)
     if ((amount !== null) && ('groups' in amount) && (amount.groups !== undefined)) {
       if (amount.groups.fraction !== undefined) {
         const parts = amount.groups.fraction.split(' ')
@@ -73,7 +74,7 @@ export function parseRecipeIngredient (recipeIngredient: string[]): Ingredient[]
       }
 
       if (amount.groups.rest !== '') {
-        const UNITS: RegExp = /(?<!\w)(?<unit>[mkc]?[gl](?=[ .])|cs|cc|c\.à\.s\.?|c\.à\.c\.?|cuill(?:e|è)re?s? à (?:café|soupe)|verres?|pièces?|gousses?|poignées?|bouts?|tasses?|coupes?|pincées?|morceaux?|quartiers?|cups?)(\(s\))?[^\w](?<rest>.*)/i
+        const UNITS: RegExp = /(?<!\w)(?<unit>[mkc]?[gl](?=[ .])|cs|cc|c\.à\.s\.?|c\.à\.c\.?|cuill(?:e|è)re?s? à (?:café|soupe)|verres?|pièces?|gousses?|poignées?|bouts?|tasses?|coupes?|pincées?|tours?|morceaux?|quartiers?|cups?)(\(s\))?[^\w](?<rest>.*)/i
 
         const unit = amount.groups.rest.match(UNITS)
         if ((unit !== null) && ('groups' in unit) && (unit.groups !== undefined) && (unit.groups.unit !== '')) {
@@ -104,7 +105,6 @@ function sanitizeIngredient (parsedIngredient: Ingredient): Ingredient {
         .replace(/^(la|les?)(?= )/, '')
         .trim()
         .replace(/^[dsl]'/g, '')
-        .replace(/\([^)]+\)/, '')
         .trim(),
       amount: parsedIngredient.amount,
       unit: parsedIngredient.unit
@@ -121,7 +121,7 @@ function sanitizeIngredient (parsedIngredient: Ingredient): Ingredient {
 }
 
 export function shortenName(name: string): string {
-  const trimRegex = /^((bâtons?|dés?|de|fins?|froids?|chauds?|en|et|&|coupée?s?|bâtonnets?|julienne|surgelée?s?|émincée?s?|concassée?s?|tranch[eé]e?s?|battue?s?|neiges?|mixée?s?|marinée?s?|blanchie?s?|pelée?s?|râpée?s?|)\s)*|\s*(\s(fins?|froids?|chauds?|en|et|&|coupée?s?|bâtonnets?|julienne|surgelée?s?|émincée?s?|concassée?s?|tranch[eé]e?s?|battue?s?|neiges?|mixée?s?|marinée?s?|blanchie?s?|pelée?s?|râpée?s?))+\s*$/g;
+  const trimRegex = /^((bâtons?|filets?|dés?|de|d\'|gousse|fins?|froids?|chauds?|en|et|&|coupée?s?|bâtonnets?|julienne|surgelée?s?|émincée?s?|concassée?s?|tranch[eé]e?s?|battue?s?|neiges?|mixée?s?|marinée?s?|blanchie?s?|pelée?s?|râpée?s?|)\s)*|\s*(\s(fins?|froids?|chauds?|en|et|&|coupée?s?|bâtonnets?|filets?|julienne|surgelée?s?|émincée?s?|concassée?s?|tranch[eé]e?s?|battue?s?|neiges?|mixée?s?|marinée?s?|blanchie?s?|pelée?s?|râpée?s?))+\s*$/g;
   
   return name.replace(trimRegex, '')
 }

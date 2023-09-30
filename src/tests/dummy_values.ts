@@ -5,11 +5,13 @@ export const dummyRecipe = {
     recipeIngredient: [
         {
             name: "pain",
+            short_name: "pain",
             amount: 100,
             unit: "g"
         },
         {
             name: "eau",
+            short_name: "eau",
             amount: 200,
             unit: "g"
         }
@@ -26,7 +28,7 @@ export const dummyResponse = {
     recipeIngredient: [
         {
             name: "pain",
-            short_name: "eau",
+            short_name: "pain",
             amount: 10000,
             unit: "g",
             name_en:"bread",
@@ -52,6 +54,7 @@ export const dummyResponse = {
 
 export const dummyResponseIngredient = {
     name: "pain",
+    short_name: "pain",
     name_en:"bread",
     fdc_id: 325871,
     high_confidence: true,
@@ -65,6 +68,7 @@ export const dummyRecipe2 = {
     recipeIngredient: [
         {
             name: "eau",
+            short_name: "eau",
             amount: 100,
             unit: "g"
         }
@@ -94,7 +98,8 @@ export const dummyPage = '<head><script type="application/ld+json">{"@context": 
 "recipeIngredient": [\
   "3 or 4 ripe bananas, smashed",\
   "1 egg",\
-  "3/4 cup of sugar"\
+  "3/4 cup of sugar",\
+  "2\u00a0  brocolis ( moyens\u00a0ou 600 g environ de fleurettes de brocolis)"\
 ],\
 "interactionStatistic": {\
   "@type": "InteractionCounter",\
@@ -113,6 +118,7 @@ export const dummyPage = '<head><script type="application/ld+json">{"@context": 
 "suitableForDiet": "https://schema.org/LowFatDiet"\
 }</script><script type="application/ld+json">{"test":1}</script></head>'
 
+export const lotteCourgette = {"@context":"https://schema.org","@type":"Recipe","name":"Brochette de lotte et courgette","description":"Réalisez une brochette de poisson sur de la citronnelle, accompagnée de courgettes miellées.","prepTime":"P0Y0M0DT0H0M1800S","cookTime":"P0Y0M0DT0H0M0S","totalTime":"P0Y0M0DT0H0M1800S","dateCreated":"","thumbnailUrl":"https://adc-dev-images-recipes.s3.eu-west-1.amazonaws.com/284_brochettes_lotte_courgettes.jpg","author":{"@type":"Person","name":"L&apos;atelier des Chefs"},"image":["https://adc-dev-images-recipes.s3.eu-west-1.amazonaws.com/284_brochettes_lotte_courgettes.jpg"],"recipeYield":"6 personnes","recipeCategory":"","recipeCuisine":"","aggregateRating":{"@type":"AggregateRating","ratingCount":364,"bestRating":5,"ratingValue":3.69684},"recipeIngredient":["900 g Filet(s) de lotte ","2 pièce(s) Bâton(s) de citronnelle ","10 cl Vin blanc sec ","3 pièce(s) Oignon(s) nouveau(x) ","4 pièce(s) Courgette(s) ","30 g Beurre doux ","1 gousse(s) Gousse(s) d&apos;ail ","20 g Miel ","5 cl Huile d&apos;olive ","6 pincée(s) Fleur de sel ","6 tour(s) Moulin à poivre "],"recipeInstructions":[{"name":"Étape 1","text":"Éplucher les oignons nouveaux, récupérer la cive sur une dizaine de centimètres et l&apos;émincer séparément. Laver les courgettes et ôter les extrémités, puis les émincer en lamelles de 5 mm d&apos;épaisseur.\nTailler la lotte en cubes de 3 cm de côté environ. Raccourcir les bulbes de citronnelle à la taille des brochettes. Tailler les bâtonnets de citronnelle en 4 dans la longueur et tailler la base dure en pointe.\nPiquer les morceaux de lotte sur les brochettes de citronnelle.\n\nDans une cocotte chaude, ajouter un filet d&apos;huile d&apos;olive et faire suer les oignons avec une pincée de sel. Ajouter l&apos;ail, le miel et les courgettes. Assaisonner et verser un fond d&apos;eau, puis cuire 6 à 8 min jusqu&apos;à évaporation.\n\nDans une poêle chaude, verser un filet d&apos;huile d&apos;olive et colorer les brochettes de lotte pendant 2 min sur chaque face, puis les réserver. Déglacer avec le vin blanc, laisser réduire de moitié et ajouter une noix de beurre frais pour épaissir la sauce. Saler et poivrer la lotte.\n\nMettre la cive d&apos;oignon dans les courgettes et arrêter le feu.\n\nDresser harmonieusement dans des assiettes en posant les brochettes sur les légumes, puis les napper de sauce.","@type":"HowToStep"}]}
 
 export const dummyLDJSON = {
     "cookTime": "PT1H",
@@ -136,7 +142,13 @@ export const dummyLDJSON = {
             "name": "sugar",
             "short_name": "sugar",
             "unit": "cup",
-        }    
+    }    ,
+        {
+            "amount": 2,
+            "name": "brocolis",
+            "short_name": "brocolis",
+            "unit": "",
+        },
     ],
     "recipeInstructions": "Preheat the oven to 350 degrees. Mix in the ingredients in a bowl. Add the flour last. Pour the mixture into a loaf pan and bake for one hour.",
     "recipeYield": "1 loaf",

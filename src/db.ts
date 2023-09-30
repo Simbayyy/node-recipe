@@ -65,9 +65,9 @@ export async function insertRecipeSchema (recipe: RecipeSchema): Promise<QueryRe
       let ingredientId: number
       if (checkIngredient.rows.length === 0) {
         const insertIngredient = await pool.query(`INSERT INTO \
-                ${test_}ingredient(name) \
-                VALUES($1) \
-                RETURNING ingredient_id`, [ingredient.name])
+                ${test_}ingredient(name,short_name) \
+                VALUES($1,$2) \
+                RETURNING ingredient_id`, [ingredient.name,ingredient.short_name ?? "erreur"])
         ingredientId = insertIngredient.rows[0].ingredient_id
       } else {
         ingredientId = checkIngredient.rows[0].ingredient_id
@@ -191,7 +191,7 @@ export async function selectRecipe (recipeId: number): Promise<RecipeSchema> {
 
     const result = await pool.query(query, values)
     if (result.rows.length !== 0) {
-      const ingredientsId = await pool.query(`SELECT i.name, ri.amount, ri.unit, i.name_en, i.fdc_id, i.high_confidence \
+      const ingredientsId = await pool.query(`SELECT i.name, i.short_name, ri.amount, ri.unit, i.name_en, i.fdc_id, i.high_confidence \
                 FROM ${test_}ingredient AS i \
                 INNER JOIN ${test_}recipe_ingredient AS ri\
                 ON ri.recipe_id = $1\
@@ -247,9 +247,9 @@ export async function selectIngredient (ingredientId: number): Promise<Ingredien
 }
 
 export async function addTranslatedName (ingredientId: number): Promise<string | undefined> {
-  const ingredientName = await pool.query(`SELECT name FROM ${test_}ingredient WHERE ingredient_id = $1`, [ingredientId])
+  const ingredientName = await pool.query(`SELECT short_name FROM ${test_}ingredient WHERE ingredient_id = $1`, [ingredientId])
   if (ingredientName.rows.length !== 0) {
-    const name = ingredientName.rows[0].name
+    const name = ingredientName.rows[0].short_name
     const nameEn = await translateIngredient(name)
     await pool.query(`UPDATE ${test_}ingredient SET name_en = $1 WHERE ingredient_id = $2`, [nameEn, ingredientId])
     logger.log({

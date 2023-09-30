@@ -5,7 +5,7 @@ import { Recipe, isRecipe } from '../types'
 import {pool, insertRecipeSchema, addTranslatedName, selectIngredient} from '../db' 
 import { getFoodData, lintIngredient, sanitizeRecipe, translateIngredient } from '../functions'
 import { dummyIngredients, dummyIngredientsResponse, dummyLDJSON, dummyNotRecipe, dummyPage, dummyRecipe, dummyRecipe2, dummyResponse, dummyResponseIngredient } from './dummy_values'
-import { parseRecipeFromPage, parseRecipeIngredient, shortenName } from '../recipe_parser'
+import { parseRecipeFromPage, parseRecipeIngredient, parseRecipeSchema, shortenName } from '../recipe_parser'
 
 if (process.env.DB_ENV == 'test') {
     describe("Database tests", () => {
@@ -39,13 +39,6 @@ if (process.env.DB_ENV == 'test') {
                 PRIMARY KEY (recipe_id, ingredient_id),\
                 CONSTRAINT fk_recipe FOREIGN KEY(recipe_id) REFERENCES test_recipe(recipe_id),\
                 CONSTRAINT fk_ingredient FOREIGN KEY(ingredient_id) REFERENCES test_ingredient(ingredient_id)\
-                );")
-            await pool.query("CREATE TABLE test_recipe_time (\
-                time_id SERIAL NOT NULL PRIMARY KEY,\
-                recipe_id INT,\
-                time INT, \
-                unit VARCHAR(100),\
-                CONSTRAINT fk_recipe FOREIGN KEY(recipe_id) REFERENCES test_recipe(recipe_id)\
                 );")
             await insertRecipeSchema(dummyRecipe)
         })
