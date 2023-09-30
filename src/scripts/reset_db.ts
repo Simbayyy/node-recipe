@@ -25,6 +25,7 @@ export async function reset_db() {
         ingredient_id SERIAL NOT NULL PRIMARY KEY,\
         name VARCHAR(200) UNIQUE,\
         name_en VARCHAR(200),\
+        short_name VARCHAR(200),\
         fdc_id INT,\
         high_confidence BOOLEAN DEFAULT FALSE\
         );")
