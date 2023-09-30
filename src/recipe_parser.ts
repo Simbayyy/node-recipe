@@ -113,8 +113,16 @@ function sanitizeIngredient (parsedIngredient: Ingredient): Ingredient {
         .replace(/c\.à\.c\.?/, 'cc')
         .replace(/c\.à\.s\.?/, 'cs')
     }
+    newIngredient.short_name = shortenName(newIngredient.name) 
     return newIngredient
   } catch (err: any) {
     throw Error(`Could not sanitize ingredient ${JSON.stringify(parsedIngredient)}. Error:\n${err}`)
   }
 }
+
+export function shortenName(name: string): string {
+  const trimRegex = /^((bâtons?|dés?|de|fins?|froids?|chauds?|en|et|&|coupée?s?|bâtonnets?|julienne|surgelée?s?|émincée?s?|concassée?s?|tranch[eé]e?s?|battue?s?|neiges?|mixée?s?|marinée?s?|blanchie?s?|pelée?s?|râpée?s?|)\s)*|\s*(\s(fins?|froids?|chauds?|en|et|&|coupée?s?|bâtonnets?|julienne|surgelée?s?|émincée?s?|concassée?s?|tranch[eé]e?s?|battue?s?|neiges?|mixée?s?|marinée?s?|blanchie?s?|pelée?s?|râpée?s?))+\s*$/g;
+  
+  return name.replace(trimRegex, '')
+}
+

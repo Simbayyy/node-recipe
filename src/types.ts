@@ -7,6 +7,7 @@ export interface Ingredient {
   name: string
   amount: number
   unit: string
+  short_name?: string
   name_en?: string
   fdc_id?: number
   high_confidence?: boolean

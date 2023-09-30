@@ -7,29 +7,10 @@ logger.log({
     message:`Deployment of app in ${process.env.APP_NAME}, at ${console.time()}`
 })
 
-async function add_users_table() {
+async function add_short_name_to_ingredients() {
     try {
-        const exists = await pool.query("CREATE TABLE users (\
-        id SERIAL PRIMARY KEY,\
-        username VARCHAR(50) UNIQUE NOT NULL,\
-        email VARCHAR(255) UNIQUE NOT NULL,\
-        password VARCHAR(255) NOT NULL,\
-        salt VARCHAR(255),\
-        created_at TIMESTAMP DEFAULT NOW(),\
-        updated_at TIMESTAMP,\
-        admin BOOLEAN DEFAULT false,\
-        is_active BOOLEAN DEFAULT true);")
-        return 'added'
-    }
-    catch (err) {
-        return `not added: ${err}`
-    }
-}
-
-async function add_admin_to_users() {
-    try {
-        const exists = await pool.query("ALTER TABLE users \
-        ADD COLUMN admin BOOLEAN DEFAULT false;")
+        const exists = await pool.query("ALTER TABLE ingredient \
+        ADD COLUMN short_name VARCHAR(200);")
         return 'added'
     }
     catch (err) {
@@ -38,58 +19,23 @@ async function add_admin_to_users() {
 }
 
 
-async function adapt_recipe_table() {
+async function update_existing_ingredients() {
     try {
-        const exists = await pool.query("ALTER TABLE recipe \
-            ADD COLUMN prepTime VARCHAR(20),\
-            ADD COLUMN cookTime VARCHAR(20),\
-            ADD COLUMN totalTime VARCHAR(20),\
-            ADD COLUMN recipeYield VARCHAR(50),\
-            ADD COLUMN recipeCategory VARCHAR(50),\
-            ADD COLUMN recipeCuisine VARCHAR(50)\
-            ;")
-        return 'added'
+        const exists = await pool.query("UPDATE ingredient \
+        SET short_name = name;")
+        return 'updated'
     }
     catch (err) {
-        return `not added: ${err}`
+        return `not updated: ${err}`
     }
-
 }
 
-async function drop_time_table() {
-    try {
-        const exists = await pool.query("DROP TABLE recipe_time")
-        return 'dropped'
-    }
-    catch (err) {
-        return `not dropped: ${err}`
-    }
-
-}
-add_users_table().then((res) => logger.log({
+add_short_name_to_ingredients().then((res) => logger.log({
     level:'info',
-    message:`Users table ${res}`
+    message:`short_name column ${res}`
 }))
 
-add_admin_to_users().then((res) => logger.log({
+update_existing_ingredients().then((res) => logger.log({
     level:'info',
-    message:`Column admin to table users ${res}`
-}))
-
-adapt_recipe_table().then((res) => logger.log({
-    level:'info',
-    message:`Recipe table new columns ${res}`
-}))
-
-drop_time_table().then((res) => logger.log({
-    level:'info',
-    message:`Time table ${res}`
-}))
-
-reset_db().then((res) => logger.log({
-    level:'info',
-    message:`Time table ${res}`
-})).catch((err) => logger.log({
-    level:'error',
-    message:`${err}`
+    message:`Existing ingredients ${res}`
 }))

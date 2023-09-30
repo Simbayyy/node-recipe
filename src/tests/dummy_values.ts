@@ -26,6 +26,7 @@ export const dummyResponse = {
     recipeIngredient: [
         {
             name: "pain",
+            short_name: "eau",
             amount: 10000,
             unit: "g",
             name_en:"bread",
@@ -34,6 +35,7 @@ export const dummyResponse = {
         },
         {
             name: "eau",
+            short_name: "eau",
             amount: 20000,
             unit: "g",
             name_en:"water",
@@ -120,16 +122,19 @@ export const dummyLDJSON = {
         {
             "amount": 3.5,
             "name": "ripe bananas, smashed",
+            "short_name": "ripe bananas, smashed",
             "unit": "",
         }, 
         {
             "amount": 1,
             "name": "egg",
+            "short_name": "egg",
             "unit": "",
         },
         {
             "amount": 0.75,
             "name": "sugar",
+            "short_name": "sugar",
             "unit": "cup",
         }    
     ],
@@ -161,6 +166,7 @@ export const dummyIngredientsResponse = [
         return {
             amount:elt[0],
             name:elt[2],
-            unit:elt[1]
+            unit:elt[1],
+            short_name:elt[2]
     }
 })
