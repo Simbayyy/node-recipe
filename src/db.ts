@@ -60,7 +60,7 @@ export async function insertRecipeSchema (recipe: RecipeSchema): Promise<QueryRe
 
     async function insertIngredient (ingredient: Ingredient, index: number, array?: Ingredient[]): Promise<number> {
       const checkIngredient = await pool.query(`SELECT ingredient_id \
-            FROM ${process.env.DB_ENV === 'test' ? 'test_' : ''}ingredient \
+            FROM ${test_}ingredient \
             WHERE name = $1`, [ingredient.name])
       let ingredientId: number
       if (checkIngredient.rows.length === 0) {
@@ -86,8 +86,8 @@ export async function insertRecipeSchema (recipe: RecipeSchema): Promise<QueryRe
         level: 'info',
         message: `Successfully inserted ingredient ${index} in the database with id ${ingredientId}`
       })
-      await addTranslatedName(ingredientId)
-      await addFoodData(ingredientId)
+      const log = await fillIngredientData(ingredientId, ingredient.short_name)
+      logger.log({level:"info",message:log})
       return ingredientId
     }
 
@@ -147,10 +147,10 @@ export async function insertRecipe (unsanitizedRecipe: any): Promise<QueryResult
           level: 'info',
           message: `Successfully inserted ingredient ${index} in the database with id ${ingredientId}`
         })
-        await addTranslatedName(ingredientId)
-        await addFoodData(ingredientId)
+        const log = await fillIngredientData(ingredientId, ingredient.short_name)
+        logger.log({level:"info",message:log})
         return ingredientId
-      }))
+        }))
       logger.log({
         level: 'info',
         message: `Successfully inserted its ingredients in the database with ids ${String(ingredientsId)}`
@@ -247,40 +247,77 @@ export async function selectIngredient (ingredientId: number): Promise<Ingredien
 }
 
 export async function addTranslatedName (ingredientId: number): Promise<string | undefined> {
-  const ingredientName = await pool.query(`SELECT short_name FROM ${test_}ingredient WHERE ingredient_id = $1`, [ingredientId])
+  const ingredientName = await pool.query(`SELECT short_name, name_en FROM ${test_}ingredient WHERE ingredient_id = $1`, [ingredientId])
   if (ingredientName.rows.length !== 0) {
-    const name = ingredientName.rows[0].short_name
-    const nameEn = await translateIngredient(name)
-    await pool.query(`UPDATE ${test_}ingredient SET name_en = $1 WHERE ingredient_id = $2`, [nameEn, ingredientId])
-    logger.log({
-      level: 'info',
-      message: `Translated ${name} to ${nameEn}`
-    })
-    return nameEn
+    if (ingredientName.rows[0].name_en == undefined) {
+      const name = ingredientName.rows[0].short_name
+      const nameEn = await translateIngredient(name)
+      await pool.query(`UPDATE ${test_}ingredient SET name_en = $1 WHERE ingredient_id = $2`, [nameEn, ingredientId])
+      logger.log({
+        level: 'info',
+        message: `Translated ${name} to ${nameEn}`
+      })
+      return nameEn
+    } else {
+      const name = ingredientName.rows[0].short_name
+      const nameEn = ingredientName.rows[0].name_en
+      logger.log({
+        level: 'info',
+        message: `${name} already translated to ${nameEn}`
+      })
+      return nameEn
+    }
   }
 }
 
 export async function addFoodData (ingredientId: number): Promise<any> {
-  const ingredientName = await pool.query(`SELECT name_en FROM ${test_}ingredient WHERE ingredient_id = $1`, [ingredientId])
+  const ingredientName = await pool.query(`SELECT name_en, fdc_id FROM ${test_}ingredient WHERE ingredient_id = $1`, [ingredientId])
   if (ingredientName.rows.length !== 0) {
-    const nameEn = ingredientName.rows[0].name_en
-    const fdcResponse = await getFoodData(nameEn)
-    try {
-      await pool.query(`UPDATE ${test_}ingredient SET fdc_id = $1 WHERE ingredient_id = $2`, [fdcResponse.foods[0].fdcId, ingredientId])
-      const confidence = (fdcResponse.query === 'strict')
-      if (confidence) {
-        await pool.query(`UPDATE ${test_}ingredient SET high_confidence = TRUE WHERE ingredient_id = $1`, [ingredientId])
+    if (ingredientName.rows[0].fdc_id == undefined) {
+      const nameEn = ingredientName.rows[0].name_en
+      const fdcResponse = await getFoodData(nameEn)
+      try {
+        await pool.query(`UPDATE ${test_}ingredient SET fdc_id = $1 WHERE ingredient_id = $2`, [fdcResponse.foods[0].fdcId, ingredientId])
+        const confidence = (fdcResponse.query === 'strict')
+        if (confidence) {
+          await pool.query(`UPDATE ${test_}ingredient SET high_confidence = TRUE WHERE ingredient_id = $1`, [ingredientId])
+        }
+        logger.log({
+          level: 'info',
+          message: `Found and added fdc data for ingredient ${nameEn}, ${confidence ? 'high' : 'low'} confidence`
+        })
+      } catch (e: any) {
+        logger.log({
+          level: 'info',
+          message: `Could not find fdc data for ingredient ${nameEn}\nReceived:${fdcResponse?.error} with ${fdcResponse.query} querying\nError: ${e}`
+        })
       }
+      return fdcResponse
+    } else {
       logger.log({
         level: 'info',
-        message: `Found and added fdc data for ingredient ${nameEn}, ${confidence ? 'high' : 'low'} confidence`
+        message: `Ingredient ${ingredientName.rows[0].name_en} already has an FDC ID, ${ingredientName.rows[0].fdc_id}`
       })
-    } catch (e: any) {
-      logger.log({
-        level: 'info',
-        message: `Could not find fdc data for ingredient ${nameEn}\nReceived:${fdcResponse?.error} with ${fdcResponse.query} querying\nError: ${e}`
-      })
+      return ingredientName.rows[0].fdc_id
     }
-    return fdcResponse
   }
+}
+
+async function fillIngredientData(ingredientId: number, short_name: string | undefined) {
+  if (short_name != undefined) {
+    const sameShortNameIngredients = await pool.query(`SELECT * \
+      FROM ${test_}ingredient \
+      WHERE short_name = $1 \
+      ORDER BY ingredient_id;` , [short_name])  
+    if (sameShortNameIngredients.rows.length > 1) {
+      const refIngredient = sameShortNameIngredients.rows[0]
+      await pool.query(`UPDATE ${test_}ingredient \
+        SET fdc_id = $1, name_en = $2, high_confidence = $3 \
+        WHERE ingredient_id = $4`, [refIngredient.fdc_id, refIngredient.name_en, refIngredient.high_confidence, ingredientId])
+      return `Copied data for ingredient ${ingredientId} from ingredient ${refIngredient.ingredient_id}`  
+    }
+  }
+  await addTranslatedName(ingredientId)
+  await addFoodData(ingredientId)
+  return `Brand new data for ${ingredientId} from APIs`  
 }

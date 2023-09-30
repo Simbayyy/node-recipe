@@ -67,7 +67,7 @@ export const dummyRecipe2 = {
     prepTime:"PT10M",
     recipeIngredient: [
         {
-            name: "eau",
+            name: "eau froide",
             short_name: "eau",
             amount: 100,
             unit: "g"

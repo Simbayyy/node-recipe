@@ -122,3 +122,4 @@ export async function getFoodData (name: string): Promise<any> {
   }
   return response
 }
+
