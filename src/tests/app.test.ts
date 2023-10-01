@@ -2,10 +2,11 @@ import { expect, test, afterAll, beforeAll, describe } from 'vitest'
 import request from 'supertest'
 import {app} from '../app'
 import { Recipe, isRecipe } from '../types'
-import {pool, insertRecipeSchema, addTranslatedName, selectIngredient} from '../db' 
-import { getFoodData, lintIngredient, sanitizeRecipe, translateIngredient } from '../functions'
+import {pool, insertRecipeSchema, selectIngredient} from '../db' 
+import { lintIngredient, sanitizeRecipe } from '../functions'
 import { dummyIngredients, dummyIngredientsResponse, dummyLDJSON, dummyNotRecipe, dummyPage, dummyRecipe, dummyRecipe2, dummyResponse, dummyResponseIngredient } from './dummy_values'
 import { parseRecipeFromPage, parseRecipeIngredient, parseRecipeSchema, shortenName } from '../recipe_parser'
+import { getFoodData } from '../food'
 
 if (process.env.DB_ENV == 'test') {
     describe("Database tests", () => {
@@ -29,6 +30,15 @@ if (process.env.DB_ENV == 'test') {
                 short_name VARCHAR(200),\
                 name_en VARCHAR(200),\
                 fdc_id INT,\
+                energy INT,\
+                protein INT,\
+                lipid INT,\
+                carbohydrates INT,\
+                iron INT,\
+                magnesium INT,\
+                calcium INT,\
+                fiber INT,\
+                zinc INT,\
                 high_confidence BOOLEAN DEFAULT FALSE\
                 );")
             await pool.query("CREATE TABLE test_recipe_ingredient (\
