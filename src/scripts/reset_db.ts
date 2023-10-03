@@ -34,8 +34,10 @@ export async function reset_db() {
         iron INT,\
         magnesium INT,\
         calcium INT,\
+        sodium INT,\
         fiber INT,\
         zinc INT,\
+        density VARCHAR(6),\
         high_confidence BOOLEAN DEFAULT FALSE\
         );")
     await pool.query("CREATE TABLE recipe_ingredient (\

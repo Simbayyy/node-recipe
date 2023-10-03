@@ -37,8 +37,10 @@ if (process.env.DB_ENV == 'test') {
                 iron INT,\
                 magnesium INT,\
                 calcium INT,\
+                sodium INT,\
                 fiber INT,\
                 zinc INT,\
+                density VARCHAR(6),\
                 high_confidence BOOLEAN DEFAULT FALSE\
                 );")
             await pool.query("CREATE TABLE test_recipe_ingredient (\

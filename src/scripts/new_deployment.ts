@@ -49,6 +49,31 @@ async function add_nutrients_to_ingredients() {
     }
 }
 
+async function add_density_to_ingredients() {
+    try {
+        const exists = await pool.query("ALTER TABLE ingredient \
+        ADD COLUMN density VARCHAR(6)")
+        return 'added'
+    }
+    catch (err) {
+        return `not added: ${err}`
+    }
+}
+
+
+async function add_sodium_to_ingredients() {
+    try {
+        const exists = await pool.query("ALTER TABLE ingredient \
+        ADD COLUMN sodium INT")
+        return 'added'
+    }
+    catch (err) {
+        return `not added: ${err}`
+    }
+}
+
+
+
 
 add_short_name_to_ingredients().then((res) => logger.log({
     level:'info',
@@ -63,4 +88,14 @@ update_existing_ingredients().then((res) => logger.log({
 add_nutrients_to_ingredients().then((res) => logger.log({
     level:'info',
     message:`Nutrients ${res}`
+}))
+
+add_density_to_ingredients().then((res) => logger.log({
+    level:'info',
+    message:`Density ${res}`
+}))
+
+add_sodium_to_ingredients().then((res) => logger.log({
+    level:'info',
+    message:`Sodium ${res}`
 }))

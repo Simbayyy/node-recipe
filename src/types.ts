@@ -13,6 +13,7 @@ export interface Ingredient {
   high_confidence?: boolean
   energy?: number
   calcium?: number
+  sodium?: number
   carbohydrates?: number
   fiber?: number
   iron?: number
