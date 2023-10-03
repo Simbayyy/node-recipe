@@ -1,10 +1,11 @@
 import { pool, test_ } from "./db"
 import { logger } from "./logger"
+import { Ingredient } from "./types"
 
-export async function addFoodData (ingredientId: number): Promise<any> {
+export async function addFoodData (ingredientId: number, force:boolean = false): Promise<any> {
     const ingredientName = await pool.query(`SELECT name_en, fdc_id FROM ${test_}ingredient WHERE ingredient_id = $1`, [ingredientId])
     if (ingredientName.rows.length !== 0) {
-      if (ingredientName.rows[0].fdc_id == undefined) {
+      if (ingredientName.rows[0].fdc_id == undefined || force === true) {
         const nameEn = ingredientName.rows[0].name_en
         const fdcResponse = await getFoodData(nameEn)
         try {
@@ -76,7 +77,7 @@ export async function addFoodData (ingredientId: number): Promise<any> {
 // Setup FoodData Central access
 export async function getFoodData (name: string): Promise<any> {
     let response: any = { status: 'Looking for ID', error: '', query: 'strict' }
-    const dataTypes = ['Foundation', 'Survey (FNDDS)', 'SR Legacy']
+    const dataTypes = ['Survey (FNDDS)', 'Foundation', 'SR Legacy']
   
     for (const query of [`+${name}`.replace(/ /, ' +'), name]) {
       for (const dataType of dataTypes) {
@@ -114,7 +115,7 @@ export async function getFoodData (name: string): Promise<any> {
     }
     return response
   }
-  
+
 export const nutrients: {name:string, remote_name:string}[] = [
     {
         remote_name:"Energy",

@@ -74,7 +74,7 @@ export function parseRecipeIngredient (recipeIngredient: string[]): Ingredient[]
       }
 
       if (amount.groups.rest !== '') {
-        const UNITS: RegExp = /(?<!\w)(?<unit>[mkc]?[gl](?=[ .])|cs|cc|c\.à\.s\.?|c\.à\.c\.?|cuill(?:e|è)re?s? à (?:café|soupe)|verres?|pièces?|gousses?|poignées?|bouts?|tasses?|coupes?|pincées?|tours?|morceaux?|quartiers?|cups?|bottes?|branches?)(\(s\))?[^\w](?<rest>.*)/i
+        const UNITS: RegExp = /(?<!\w)(?<unit>[mkc]?[gl](?=[ .])|cs|cc|c\.à\.s\.?|c\.à\.c\.?|(cuill(?:e|è)re?s?|c\.?) à (?:café|soupe)|verres?|pièces?|gousses?|poignées?|bouts?|tasses?|coupes?|pincées?|tours?|morceaux?|quartiers?|cups?|bottes?|branches?)(\(s\))?[^\w](?<rest>.*)/i
 
         const unit = amount.groups.rest.match(UNITS)
         if ((unit !== null) && ('groups' in unit) && (unit.groups !== undefined) && (unit.groups.unit !== '')) {
