@@ -193,7 +193,7 @@ export async function selectRecipe (recipeId: number): Promise<RecipeSchema> {
 
     const result = await pool.query(query, values)
     if (result.rows.length !== 0) {
-      const ingredientsId = await pool.query(`SELECT i.name, i.short_name, ri.amount, ri.unit, i.name_en, i.fdc_id, i.high_confidence \
+      const ingredientsId = await pool.query(`SELECT i.name, i.short_name, ri.amount, ri.unit, i.name_en, i.fdc_id, i.high_confidence, i.lipid, i.energy, i.protein, i.carbohydrates, i.iron, i.zinc, i.magnesium, i.calcium, i.fiber \
                 FROM ${test_}ingredient AS i \
                 INNER JOIN ${test_}recipe_ingredient AS ri\
                 ON ri.recipe_id = $1\

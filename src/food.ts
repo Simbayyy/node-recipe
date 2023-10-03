@@ -7,34 +7,34 @@ export async function addFoodData (ingredientId: number): Promise<any> {
       if (ingredientName.rows[0].fdc_id == undefined) {
         const nameEn = ingredientName.rows[0].name_en
         const fdcResponse = await getFoodData(nameEn)
-        const energy = Math.floor((fdcResponse.foods[0].foodNutrients.filter((elt) => {
-            return elt.nutrientName == "Energy"
-        })[0] ?? {value:0}).value * 1000)
-        const protein = Math.floor((fdcResponse.foods[0].foodNutrients.filter((elt) => {
-            return elt.nutrientName == "Protein"
-        })[0] ?? {value:0}).value * 1000)
-        const lipid = Math.floor((fdcResponse.foods[0].foodNutrients.filter((elt) => {
-            return elt.nutrientName == "Total lipid (fat)"
-        })[0] ?? {value:0}).value * 1000)
-        const carbohydrates = Math.floor((fdcResponse.foods[0].foodNutrients.filter((elt) => {
-            return elt.nutrientName == "Carbohydrate, by difference"
-        })[0] ?? {value:0}).value * 1000)
-        const iron = Math.floor((fdcResponse.foods[0].foodNutrients.filter((elt) => {
-            return elt.nutrientName == "Iron, Fe"
-        })[0] ?? {value:0}).value * 1000)
-        const magnesium = Math.floor((fdcResponse.foods[0].foodNutrients.filter((elt) => {
-            return elt.nutrientName == "Magnesium, Mg"
-        })[0] ?? {value:0}).value * 1000)
-        const calcium = Math.floor((fdcResponse.foods[0].foodNutrients.filter((elt) => {
-            return elt.nutrientName == "Calcium, Ca"
-        })[0] ?? {value:0}).value * 1000)
-        const fiber = Math.floor((fdcResponse.foods[0].foodNutrients.filter((elt) => {
-            return elt.nutrientName == "Fiber, total dietary"
-        })[0] ?? {value:0}).value * 1000)
-        const zinc = Math.floor((fdcResponse.foods[0].foodNutrients.filter((elt) => {
-            return elt.nutrientName == "Zinc, Zn"
-        })[0] ?? {value:0}).value * 1000)
         try {
+          const energy = Math.floor((fdcResponse.foods[0].foodNutrients.filter((elt) => {
+                return elt.nutrientName == "Energy" || elt.nutrientName == "Energy (Atwater General Factors)" || elt.nutrientName ==  "Energy (Atwater Specific Factors)"
+            })[0] ?? {value:0}).value * 1000)
+          const protein = Math.floor((fdcResponse.foods[0].foodNutrients.filter((elt) => {
+                return elt.nutrientName == "Protein"
+            })[0] ?? {value:0}).value * 1000)
+          const lipid = Math.floor((fdcResponse.foods[0].foodNutrients.filter((elt) => {
+                return elt.nutrientName == "Total lipid (fat)"
+            })[0] ?? {value:0}).value * 1000)
+          const carbohydrates = Math.floor((fdcResponse.foods[0].foodNutrients.filter((elt) => {
+                return elt.nutrientName == "Carbohydrate, by difference"
+            })[0] ?? {value:0}).value * 1000)
+          const iron = Math.floor((fdcResponse.foods[0].foodNutrients.filter((elt) => {
+                return elt.nutrientName == "Iron, Fe"
+            })[0] ?? {value:0}).value * 1000)
+          const magnesium = Math.floor((fdcResponse.foods[0].foodNutrients.filter((elt) => {
+                return elt.nutrientName == "Magnesium, Mg"
+            })[0] ?? {value:0}).value * 1000)
+          const calcium = Math.floor((fdcResponse.foods[0].foodNutrients.filter((elt) => {
+                return elt.nutrientName == "Calcium, Ca"
+            })[0] ?? {value:0}).value * 1000)
+          const fiber = Math.floor((fdcResponse.foods[0].foodNutrients.filter((elt) => {
+                return elt.nutrientName == "Fiber, total dietary"
+            })[0] ?? {value:0}).value * 1000)
+          const zinc = Math.floor((fdcResponse.foods[0].foodNutrients.filter((elt) => {
+                return elt.nutrientName == "Zinc, Zn"
+            })[0] ?? {value:0}).value * 1000)
           await pool.query(`UPDATE ${test_}ingredient SET \
             fdc_id = $1, \
             energy = $3, \

@@ -27,6 +27,15 @@ export async function reset_db() {
         name_en VARCHAR(200),\
         short_name VARCHAR(200),\
         fdc_id INT,\
+        energy INT,\
+        protein INT,\
+        lipid INT,\
+        carbohydrates INT,\
+        iron INT,\
+        magnesium INT,\
+        calcium INT,\
+        fiber INT,\
+        zinc INT,\
         high_confidence BOOLEAN DEFAULT FALSE\
         );")
     await pool.query("CREATE TABLE recipe_ingredient (\
