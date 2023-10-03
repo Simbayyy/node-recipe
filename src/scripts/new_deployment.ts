@@ -18,7 +18,6 @@ async function add_short_name_to_ingredients() {
     }
 }
 
-
 async function update_existing_ingredients() {
     try {
         const exists = await pool.query("UPDATE ingredient \
@@ -30,6 +29,27 @@ async function update_existing_ingredients() {
     }
 }
 
+
+async function add_nutrients_to_ingredients() {
+    try {
+        const exists = await pool.query("ALTER TABLE ingredient \
+        ADD COLUMN energy INT,\
+        ADD COLUMN protein INT,\
+        ADD COLUMN lipid INT,\
+        ADD COLUMN carbohydrates INT,\
+        ADD COLUMN iron INT,\
+        ADD COLUMN magnesium INT,\
+        ADD COLUMN calcium INT,\
+        ADD COLUMN fiber INT,\
+        ADD COLUMN zinc INT")
+        return 'added'
+    }
+    catch (err) {
+        return `not added: ${err}`
+    }
+}
+
+
 add_short_name_to_ingredients().then((res) => logger.log({
     level:'info',
     message:`short_name column ${res}`
@@ -38,4 +58,9 @@ add_short_name_to_ingredients().then((res) => logger.log({
 update_existing_ingredients().then((res) => logger.log({
     level:'info',
     message:`Existing ingredients ${res}`
+}))
+
+add_nutrients_to_ingredients().then((res) => logger.log({
+    level:'info',
+    message:`Nutrients ${res}`
 }))

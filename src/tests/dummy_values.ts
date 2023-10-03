@@ -58,7 +58,16 @@ export const dummyResponseIngredient = {
     name_en:"bread",
     fdc_id: 325871,
     high_confidence: true,
-    ingredient_id:1
+    ingredient_id:1,
+    energy:270000,
+    calcium: 211000,
+    carbohydrates:49200,
+    fiber:2300,
+    iron:3360,
+    lipid:3590,
+    magnesium:26900,
+    protein:9430,
+    zinc:880
 }
 
 export const dummyRecipe2 = {

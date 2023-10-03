@@ -1,6 +1,4 @@
-import { logger } from './logger'
 import { type Ingredient, type Recipe, type RecipeSchema } from './types'
-import * as deepl from 'deepl-node'
 import * as he from 'he'
 
 export function sanitizeRecipe (recipe: Recipe): Recipe {
@@ -71,55 +69,3 @@ export function lintIngredient (ingredient: Ingredient): Ingredient {
   }
   return newingredient
 }
-
-// Setup DeepL API access
-const authKey = process.env.DEEPL_KEY ?? 'no_key'
-const translator = new deepl.Translator(authKey)
-
-export async function translateIngredient (name: string): Promise<string> {
-  const result = await translator.translateText(name, 'fr', 'en-US')
-  return result.text
-}
-
-// Setup FoodData Central access
-export async function getFoodData (name: string): Promise<any> {
-  let response: any = { status: 'Looking for ID', error: '', query: 'strict' }
-  const dataTypes = ['Foundation', 'Survey (FNDDS)', 'SR Legacy']
-
-  for (const query of [`+${name}`.replace(/ /, ' +'), name]) {
-    for (const dataType of dataTypes) {
-      if (response.status === 'Looking for ID') {
-        const body = {
-          query,
-          dataType: [
-            dataType
-          ],
-          pageSize: 1,
-          pageNumber: 1
-        }
-        const request = {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Api-Key': process.env.FOOD_DATA_KEY ?? 'no_key'
-          },
-          method: 'POST',
-          body: JSON.stringify(body)
-        }
-        const url = 'https://api.nal.usda.gov/fdc/v1/foods/search'
-        await fetch(url, request).then(async (res) => { return await res.json() }).then((res) => {
-          logger.log({ level: 'info', message: `Found id for ${name} in ${dataType}, ${response.query}: ${res.foods[0].fdcId}` })
-          response = res
-        }).catch((e: any) => {
-          response.error += `Could not find ID in ${dataType}\n`
-        })
-        if (query === name) {
-          response.query = 'loose'
-        } else {
-          response.query = 'strict'
-        }
-      }
-    }
-  }
-  return response
-}
-

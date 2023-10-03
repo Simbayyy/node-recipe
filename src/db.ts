@@ -2,7 +2,9 @@ import { Pool, type QueryResult } from 'pg'
 import { type Ingredient, type IngredientRaw, type RecipeSchema, isRecipe } from './types'
 import * as dotenv from 'dotenv'
 import { logger } from './logger'
-import { getFoodData, sanitizeRecipe, sanitizeRecipeSchema, translateIngredient } from './functions'
+import { sanitizeRecipe, sanitizeRecipeSchema } from './functions'
+import { addFoodData } from './food'
+import { addTranslatedName } from './translation'
 
 // Load environment variables
 dotenv.config({ path: process.env.NODE_ENV === 'production' ? '.env' : '.env.development.local' })
@@ -191,7 +193,7 @@ export async function selectRecipe (recipeId: number): Promise<RecipeSchema> {
 
     const result = await pool.query(query, values)
     if (result.rows.length !== 0) {
-      const ingredientsId = await pool.query(`SELECT i.name, i.short_name, ri.amount, ri.unit, i.name_en, i.fdc_id, i.high_confidence \
+      const ingredientsId = await pool.query(`SELECT i.name, i.short_name, ri.amount, ri.unit, i.name_en, i.fdc_id, i.high_confidence, i.lipid, i.energy, i.protein, i.carbohydrates, i.iron, i.zinc, i.magnesium, i.calcium, i.fiber \
                 FROM ${test_}ingredient AS i \
                 INNER JOIN ${test_}recipe_ingredient AS ri\
                 ON ri.recipe_id = $1\
@@ -243,63 +245,6 @@ export async function selectIngredient (ingredientId: number): Promise<Ingredien
       message: `Could not fetch ingredient\nError: ${e}`
     })
     throw Error(`Could not fetch ingredient\nError: ${e}`)
-  }
-}
-
-export async function addTranslatedName (ingredientId: number): Promise<string | undefined> {
-  const ingredientName = await pool.query(`SELECT short_name, name_en FROM ${test_}ingredient WHERE ingredient_id = $1`, [ingredientId])
-  if (ingredientName.rows.length !== 0) {
-    if (ingredientName.rows[0].name_en == undefined) {
-      const name = ingredientName.rows[0].short_name
-      const nameEn = await translateIngredient(name)
-      await pool.query(`UPDATE ${test_}ingredient SET name_en = $1 WHERE ingredient_id = $2`, [nameEn, ingredientId])
-      logger.log({
-        level: 'info',
-        message: `Translated ${name} to ${nameEn}`
-      })
-      return nameEn
-    } else {
-      const name = ingredientName.rows[0].short_name
-      const nameEn = ingredientName.rows[0].name_en
-      logger.log({
-        level: 'info',
-        message: `${name} already translated to ${nameEn}`
-      })
-      return nameEn
-    }
-  }
-}
-
-export async function addFoodData (ingredientId: number): Promise<any> {
-  const ingredientName = await pool.query(`SELECT name_en, fdc_id FROM ${test_}ingredient WHERE ingredient_id = $1`, [ingredientId])
-  if (ingredientName.rows.length !== 0) {
-    if (ingredientName.rows[0].fdc_id == undefined) {
-      const nameEn = ingredientName.rows[0].name_en
-      const fdcResponse = await getFoodData(nameEn)
-      try {
-        await pool.query(`UPDATE ${test_}ingredient SET fdc_id = $1 WHERE ingredient_id = $2`, [fdcResponse.foods[0].fdcId, ingredientId])
-        const confidence = (fdcResponse.query === 'strict')
-        if (confidence) {
-          await pool.query(`UPDATE ${test_}ingredient SET high_confidence = TRUE WHERE ingredient_id = $1`, [ingredientId])
-        }
-        logger.log({
-          level: 'info',
-          message: `Found and added fdc data for ingredient ${nameEn}, ${confidence ? 'high' : 'low'} confidence`
-        })
-      } catch (e: any) {
-        logger.log({
-          level: 'info',
-          message: `Could not find fdc data for ingredient ${nameEn}\nReceived:${fdcResponse?.error} with ${fdcResponse.query} querying\nError: ${e}`
-        })
-      }
-      return fdcResponse
-    } else {
-      logger.log({
-        level: 'info',
-        message: `Ingredient ${ingredientName.rows[0].name_en} already has an FDC ID, ${ingredientName.rows[0].fdc_id}`
-      })
-      return ingredientName.rows[0].fdc_id
-    }
   }
 }
 
