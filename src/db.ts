@@ -254,7 +254,7 @@ async function fillIngredientData(ingredientId: number, short_name: string | und
       FROM ${test_}ingredient \
       WHERE short_name = $1 \
       ORDER BY ingredient_id;` , [short_name])  
-    if (sameShortNameIngredients.rows.length > 1) {
+    if (sameShortNameIngredients.rows.length > 1 || (sameShortNameIngredients.rows[0].name_en != undefined && sameShortNameIngredients.rows[0].fdc_id != undefined)) {
       const refIngredient = sameShortNameIngredients.rows[0]
       await pool.query(`UPDATE ${test_}ingredient \
         SET fdc_id = $1, name_en = $2, high_confidence = $3 \
