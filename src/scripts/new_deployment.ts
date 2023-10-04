@@ -73,6 +73,21 @@ async function add_sodium_to_ingredients() {
 }
 
 
+async function add_user_recipe_table() {
+    try {
+        const exists = await pool.query("CREATE TABLE user_recipe (\
+            id SERIAL NOT NULL PRIMARY KEY,\
+            recipe_id INT,\
+            user_id INT,\
+            CONSTRAINT fk_recipe FOREIGN KEY(recipe_id) REFERENCES recipe(recipe_id),\
+            );")
+    }
+    catch (err) {
+        return `not added: ${err}`
+    }
+}
+
+
 
 
 add_short_name_to_ingredients().then((res) => logger.log({
@@ -98,4 +113,9 @@ add_density_to_ingredients().then((res) => logger.log({
 add_sodium_to_ingredients().then((res) => logger.log({
     level:'info',
     message:`Sodium ${res}`
+}))
+
+add_user_recipe_table().then((res) => logger.log({
+    level:'info',
+    message:`User recipe link ${res}`
 }))

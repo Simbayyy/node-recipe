@@ -21,91 +21,114 @@ export const pool = new Pool({
   host: 'localhost'
 })
 
-export async function insertRecipeSchema (recipe: RecipeSchema): Promise<QueryResult | undefined> {
+export async function insertRecipeSchema (recipe: RecipeSchema, userId: number = 0): Promise<number | undefined> {
   try {
     if (!(('name' in recipe) && ('url' in recipe))) {
       throw Error('This is not a recipe')
     }
-    // Attempts to insert recipe
-    const response = await pool.query(`INSERT INTO \
-        ${test_}recipe(name,url,prepTime,cookTime,totalTime,recipeYield,recipeInstructions,recipeCategory,recipeCuisine) \
-        VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9) \
-        RETURNING recipe_id`, [
-      recipe.name,
-      recipe.url,
-      recipe.prepTime ?? '',
-      recipe.cookTime ?? '',
-      recipe.totalTime ?? '',
-      recipe.recipeYield ?? '',
-      recipe.recipeInstructions ?? '',
-      recipe.recipeCategory ?? '',
-      recipe.recipeCuisine ?? ''
-    ])
-    const newRecipeId = response.rows[0].recipe_id
-    logger.log({
-      level: 'info',
-      message: `Successfully created recipe with id ${newRecipeId}`
-    })
+    const getSameRecipe = await pool.query(`SELECT recipe_id 
+      FROM ${test_}recipe
+      WHERE url=$1`, [
+        recipe.url
+      ])
+    if (getSameRecipe.rows.length === 0) {
+      // Attempts to insert recipe
+      const response = await pool.query(`INSERT INTO
+          ${test_}recipe(name,url,prepTime,cookTime,totalTime,recipeYield,recipeInstructions,recipeCategory,recipeCuisine)
+          VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)
+          RETURNING recipe_id`, [
+        recipe.name,
+        recipe.url,
+        recipe.prepTime ?? '',
+        recipe.cookTime ?? '',
+        recipe.totalTime ?? '',
+        recipe.recipeYield ?? '',
+        recipe.recipeInstructions ?? '',
+        recipe.recipeCategory ?? '',
+        recipe.recipeCuisine ?? ''
+      ])
+      const newRecipeId = response.rows[0].recipe_id
+      logger.log({
+        level: 'info',
+        message: `Successfully created recipe with id ${newRecipeId}`
+      })
 
-    // Attempts to insert all ingredients
-    const ingredientsFirstPass = (recipe.recipeIngredient as Ingredient[] | undefined ?? []).filter((elt, index, arr) => {
-      return index === arr.findIndex(object => {
-        return object.name === elt.name
+      
+      // Attempts to insert all ingredients
+      const ingredientsFirstPass = (recipe.recipeIngredient as Ingredient[] | undefined ?? []).filter((elt, index, arr) => {
+        return index === arr.findIndex(object => {
+          return object.name === elt.name
       })
     })
-
+    
     const ingredientsSecondPass = (recipe.recipeIngredient as Ingredient[] | undefined ?? []).filter((elt, index, arr) => {
       return index !== arr.findIndex(object => {
         return object.name === elt.name
       })
     })
-
+    
     async function insertIngredient (ingredient: Ingredient, index: number, array?: Ingredient[]): Promise<number> {
       const checkIngredient = await pool.query(`SELECT ingredient_id \
-            FROM ${test_}ingredient \
-            WHERE name = $1`, [ingredient.name])
+      FROM ${test_}ingredient \
+      WHERE name = $1`, [ingredient.name])
       let ingredientId: number
       if (checkIngredient.rows.length === 0) {
         const insertIngredient = await pool.query(`INSERT INTO \
-                ${test_}ingredient(name,short_name) \
-                VALUES($1,$2) \
-                RETURNING ingredient_id`, [ingredient.name,ingredient.short_name ?? "erreur"])
+        ${test_}ingredient(name,short_name) \
+        VALUES($1,$2) \
+        RETURNING ingredient_id`, [ingredient.name,ingredient.short_name ?? "erreur"])
         ingredientId = insertIngredient.rows[0].ingredient_id
       } else {
         ingredientId = checkIngredient.rows[0].ingredient_id
       }
       await pool.query(
-                `INSERT INTO \
-                ${test_}recipe_ingredient(recipe_id,ingredient_id,amount,unit) \
-                VALUES($1, $2, $3, $4);`,
-                [
-                  newRecipeId,
-                  ingredientId,
-                  Math.floor(ingredient.amount * 100),
-                  ingredient.unit
-                ])
+        `INSERT INTO \
+        ${test_}recipe_ingredient(recipe_id,ingredient_id,amount,unit) \
+        VALUES($1, $2, $3, $4);`,
+        [
+          newRecipeId,
+          ingredientId,
+          Math.floor(ingredient.amount * 100),
+          ingredient.unit
+        ])
+        logger.log({
+          level: 'info',
+          message: `Successfully inserted ingredient ${index} in the database with id ${ingredientId}`
+        })
+        const log = await fillIngredientData(ingredientId, ingredient.short_name)
+        logger.log({level:"info",message:log})
+        return ingredientId
+      }
+      
+      const ingredientsId = await Promise.all(ingredientsFirstPass.map(insertIngredient))
+      const ingredientsId2 = await Promise.all(ingredientsSecondPass.map(insertIngredient))
       logger.log({
         level: 'info',
-        message: `Successfully inserted ingredient ${index} in the database with id ${ingredientId}`
+        message: `Successfully inserted its ingredients in the database with ids ${String(ingredientsId)}, ${String(ingredientsId2)}`
       })
-      const log = await fillIngredientData(ingredientId, ingredient.short_name)
-      logger.log({level:"info",message:log})
-      return ingredientId
+      await insertRecipeUserLink(newRecipeId,userId)
+      return newRecipeId
+    } else {
+      const newRecipeId = getSameRecipe.rows[0].recipe_id ?? null
+      await insertRecipeUserLink(newRecipeId,userId)
+      return newRecipeId
     }
-
-    const ingredientsId = await Promise.all(ingredientsFirstPass.map(insertIngredient))
-    const ingredientsId2 = await Promise.all(ingredientsSecondPass.map(insertIngredient))
-    logger.log({
-      level: 'info',
-      message: `Successfully inserted its ingredients in the database with ids ${String(ingredientsId)}, ${String(ingredientsId2)}`
-    })
-    return response
   } catch (e: any) {
     logger.log({
       level: 'error',
       message: `Failed with insertion of recipe from ${recipe.url}\nError message is ${e}`
     })
     return undefined
+  }
+}
+
+async function insertRecipeUserLink(newRecipeId:number | null ,userId:number) {
+  if (newRecipeId !== null) {
+    await pool.query(`INSERT INTO ${test_}user_recipe(recipe_id,user_id)
+      VALUES($1,$2)`, [
+        newRecipeId,
+        userId
+      ])
   }
 }
 
@@ -167,7 +190,7 @@ export async function insertRecipe (unsanitizedRecipe: any): Promise<QueryResult
         level: 'info',
         message: `Successfully inserted its time in the database with ids ${insertTime.rows[0].time_id}`
       })
-      return response
+      return newRecipeId
     } catch (e: any) {
       logger.log({
         level: 'error',

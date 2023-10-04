@@ -77,6 +77,8 @@ export async function getAllIngredients (req: any, res: any): Promise<void> {
 }
 
 export async function parseRecipe (req: any, res: any): Promise<void> {
+  let userId = 0
+  if ('user' in req && req.user !== undefined && 'id' in req.user && req.user.id !== undefined) {userId = req.user.id}
   try {
     const url = req.body.url
     fetch(url)
@@ -91,11 +93,11 @@ export async function parseRecipe (req: any, res: any): Promise<void> {
           message: `New recipe ${recipe.name} detected from ${url}!`
         })
         recipe = sanitizeRecipeSchema(recipe)
-        return await insertRecipeSchema(recipe)
+        return await insertRecipeSchema(recipe, userId)
       })
-      .then(async (insertion) => {
-        if (insertion !== undefined) {
-          return await selectRecipe(insertion.rows[0].recipe_id)
+      .then(async (insertionId) => {
+        if (insertionId !== undefined) {
+          return await selectRecipe(insertionId)
         } else throw Error('New recipe insertion failed')
       })
       .then((recipe) => {

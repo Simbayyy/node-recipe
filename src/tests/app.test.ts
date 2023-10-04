@@ -22,7 +22,8 @@ if (process.env.DB_ENV == 'test') {
                 recipeYield VARCHAR(500),\
                 recipeCategory VARCHAR(500),\
                 recipeInstructions VARCHAR(1000),\
-                recipeCuisine VARCHAR(500)\
+                recipeCuisine VARCHAR(500),\
+                user_id INT DEFAULT 0\
                 );")
             await pool.query("CREATE TABLE test_ingredient (\
                 ingredient_id SERIAL NOT NULL PRIMARY KEY,\
@@ -52,12 +53,24 @@ if (process.env.DB_ENV == 'test') {
                 CONSTRAINT fk_recipe FOREIGN KEY(recipe_id) REFERENCES test_recipe(recipe_id),\
                 CONSTRAINT fk_ingredient FOREIGN KEY(ingredient_id) REFERENCES test_ingredient(ingredient_id)\
                 );")
+            await pool.query("CREATE TABLE test_user_recipe (\
+                id SERIAL NOT NULL PRIMARY KEY,\
+                recipe_id INT,\
+                user_id INT,\
+                CONSTRAINT fk_recipe FOREIGN KEY(recipe_id) REFERENCES test_recipe(recipe_id)\
+                );")    
+            await pool.query("CREATE TABLE test_users (\
+                id SERIAL NOT NULL PRIMARY KEY,\
+                email VARCHAR(200) UNIQUE,\
+                username VARCHAR(200) UNIQUE,\
+                salted_password VARCHAR(200)\
+                );")
             await insertRecipeSchema(dummyRecipe)
         })
 
         afterAll(async () => {
                 // Cleanup created db tables
-                await pool.query("DROP TABLE IF EXISTS test_recipe, test_ingredient, test_recipe_ingredient")
+                await pool.query("DROP TABLE IF EXISTS test_recipe, test_ingredient, test_recipe_ingredient, test_user_recipe, test_users")
         })
     
         test('getFoodData', async () => {
@@ -88,13 +101,13 @@ if (process.env.DB_ENV == 'test') {
     
         test('Database entry creation', async () => {
             let insert_dummy_2 = await insertRecipeSchema(dummyRecipe)
-            expect(insert_dummy_2).toBe(undefined)
+            expect(insert_dummy_2).toBe(1)
             let insert_dummy_3 = await insertRecipeSchema(dummyNotRecipe)
             expect(insert_dummy_3).toBe(undefined)
             let insert_dummy_4 = await insertRecipeSchema({})
             expect(insert_dummy_4).toBe(undefined)
             let insert_dummy_5 = await insertRecipeSchema(dummyRecipe2)
-            expect(insert_dummy_5?.rows[0].recipe_id).toBe(3)
+            expect(insert_dummy_5).toBe(2)
         })
     
         test('Database structure', async () => {
