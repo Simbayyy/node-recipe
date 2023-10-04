@@ -22,14 +22,20 @@ export function options (req: any, res: any): void {
 export async function getAllRecipes (req: any, res: any): Promise<void> {
   res.header('Access-Control-Allow-Origin', '*')
   const allRecipeIds = await pool.query('SELECT recipe_id FROM recipe')
-  const recipes = await Promise.all(allRecipeIds.rows.map(async (id) => { return await selectRecipe(id.recipe_id) }))
+  const userId = ('user' in req && req.user !== undefined && 'id' in req.user && req.user.id !== undefined) ? req.user.id : null
+  const recipes = (await Promise.all(allRecipeIds.rows.map(async (id) => { return await selectRecipe(id.recipe_id, userId) })))
+    .filter((elt) => {return !('error' in elt)})
   res.status(200).json({ recipes })
 }
 
 export async function getRecipe (req: any, res: any): Promise<void> {
   res.header('Access-Control-Allow-Origin', '*')
   try {
-    const recipe = await selectRecipe(req.params.recipeId)
+    const userId = ('user' in req && req.user !== undefined && 'id' in req.user && req.user.id !== undefined) ? req.user.id : null
+    const recipe = await selectRecipe(req.params.recipeId, userId)
+    if ('error' in recipe) {
+      throw Error('Access not allowed to user')
+    }
     res.status(200).json(recipe)
   } catch (e: any) {
     logger.log({
@@ -77,7 +83,7 @@ export async function getAllIngredients (req: any, res: any): Promise<void> {
 }
 
 export async function parseRecipe (req: any, res: any): Promise<void> {
-  let userId = 0
+  let userId = null
   if ('user' in req && req.user !== undefined && 'id' in req.user && req.user.id !== undefined) {userId = req.user.id}
   try {
     const url = req.body.url
@@ -97,7 +103,7 @@ export async function parseRecipe (req: any, res: any): Promise<void> {
       })
       .then(async (insertionId) => {
         if (insertionId !== undefined) {
-          return await selectRecipe(insertionId)
+          return await selectRecipe(insertionId, userId, true)
         } else throw Error('New recipe insertion failed')
       })
       .then((recipe) => {

@@ -21,7 +21,7 @@ export const pool = new Pool({
   host: 'localhost'
 })
 
-export async function insertRecipeSchema (recipe: RecipeSchema, userId: number = 0): Promise<number | undefined> {
+export async function insertRecipeSchema (recipe: RecipeSchema, userId: number | null = null): Promise<number | undefined> {
   try {
     if (!(('name' in recipe) && ('url' in recipe))) {
       throw Error('This is not a recipe')
@@ -106,11 +106,11 @@ export async function insertRecipeSchema (recipe: RecipeSchema, userId: number =
         level: 'info',
         message: `Successfully inserted its ingredients in the database with ids ${String(ingredientsId)}, ${String(ingredientsId2)}`
       })
-      await insertRecipeUserLink(newRecipeId,userId)
+      await insertRecipeUserLink(newRecipeId,userId ?? 0)
       return newRecipeId
     } else {
       const newRecipeId = getSameRecipe.rows[0].recipe_id ?? null
-      await insertRecipeUserLink(newRecipeId,userId)
+      await insertRecipeUserLink(newRecipeId,userId ?? 0)
       return newRecipeId
     }
   } catch (e: any) {
@@ -207,8 +207,30 @@ export async function insertRecipe (unsanitizedRecipe: any): Promise<QueryResult
   }
 }
 
-export async function selectRecipe (recipeId: number): Promise<RecipeSchema> {
+export async function selectRecipe (recipeId: number, userId:number | null = null, force:boolean = false): Promise<RecipeSchema | {error:string}> {
   try {
+    const usersLinkedToRecipe = await pool.query(`SELECT user_id FROM user_recipe
+      WHERE recipe_id=$1`, [
+        recipeId
+      ])
+    if (!force && usersLinkedToRecipe.rows.length !== 0) {
+      const allowedUsers = usersLinkedToRecipe.rows.map((elt) => {return elt.user_id})
+      if (allowedUsers.indexOf(userId) === -1) {
+        const isRecipeAdmin = await pool.query(`SELECT CASE
+            WHEN EXISTS (SELECT 1 FROM users WHERE id = ANY($1::int[]) AND admin = true) THEN true
+            ELSE false
+          END AS has_admin
+        `, [allowedUsers])
+        if (!(isRecipeAdmin.rows[0].has_admin)) {
+          logger.log({
+            level: 'error',
+            message: `User ${userId} attempted to access ${recipeId} but did not have permission to do so`
+          })      
+          return {error:`Could not fetch recipe`}
+        }
+      }
+    }
+
     const query = `SELECT * \
             FROM ${process.env.DB_ENV === 'test' ? 'test_' : ''}recipe \
             WHERE recipe_id = $1`
