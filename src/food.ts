@@ -1,6 +1,7 @@
 import { pool, test_ } from "./db"
 import { logger } from "./logger"
 import { Ingredient } from "./types"
+import levenshtein from 'js-levenshtein'
 
 export async function addFoodData (ingredientId: number, force:boolean = false): Promise<any> {
     const ingredientName = await pool.query(`SELECT name_en, fdc_id FROM ${test_}ingredient WHERE ingredient_id = $1`, [ingredientId])
@@ -10,37 +11,40 @@ export async function addFoodData (ingredientId: number, force:boolean = false):
         const fdcResponse = await getFoodData(nameEn)
         if (!('error' in fdcResponse)){
           try {
-            const energy = Math.floor((fdcResponse.foods[0].foodNutrients.filter((elt) => {
+            const bestMatchFood = fdcResponse.foods.reduce((a,b) => {
+              return levenshtein(a.description, nameEn) < levenshtein(b.description, nameEn) ? a : b
+            })
+            const energy = Math.floor((bestMatchFood.foodNutrients.filter((elt) => {
                   return (elt.nutrientName == "Energy" || elt.nutrientName == "Energy (Atwater General Factors)" || elt.nutrientName ==  "Energy (Atwater Specific Factors)") && 'unitName' in elt && elt.unitName.match(/kcal/i)
               })[0] ?? {value:0}).value * 1000)
-            const protein = Math.floor((fdcResponse.foods[0].foodNutrients.filter((elt) => {
+            const protein = Math.floor((bestMatchFood.foodNutrients.filter((elt) => {
                   return elt.nutrientName == "Protein"
               })[0] ?? {value:0}).value * 1000)
-            const lipid = Math.floor((fdcResponse.foods[0].foodNutrients.filter((elt) => {
+            const lipid = Math.floor((bestMatchFood.foodNutrients.filter((elt) => {
                   return elt.nutrientName == "Total lipid (fat)"
               })[0] ?? {value:0}).value * 1000)
-            const carbohydrates = Math.floor((fdcResponse.foods[0].foodNutrients.filter((elt) => {
+            const carbohydrates = Math.floor((bestMatchFood.foodNutrients.filter((elt) => {
                   return elt.nutrientName == "Carbohydrate, by difference"
               })[0] ?? {value:0}).value * 1000)
-            const iron = Math.floor((fdcResponse.foods[0].foodNutrients.filter((elt) => {
+            const iron = Math.floor((bestMatchFood.foodNutrients.filter((elt) => {
                   return elt.nutrientName == "Iron, Fe"
               })[0] ?? {value:0}).value * 1000)
-            const magnesium = Math.floor((fdcResponse.foods[0].foodNutrients.filter((elt) => {
+            const magnesium = Math.floor((bestMatchFood.foodNutrients.filter((elt) => {
                   return elt.nutrientName == "Magnesium, Mg"
               })[0] ?? {value:0}).value * 1000)
-            const calcium = Math.floor((fdcResponse.foods[0].foodNutrients.filter((elt) => {
+            const calcium = Math.floor((bestMatchFood.foodNutrients.filter((elt) => {
                   return elt.nutrientName == "Calcium, Ca"
               })[0] ?? {value:0}).value * 1000)
-            const sodium = Math.floor((fdcResponse.foods[0].foodNutrients.filter((elt) => {
+            const sodium = Math.floor((bestMatchFood.foodNutrients.filter((elt) => {
                   return elt.nutrientName == "Sodium, Na"
               })[0] ?? {value:0}).value * 1000)
-            const fiber = Math.floor((fdcResponse.foods[0].foodNutrients.filter((elt) => {
+            const fiber = Math.floor((bestMatchFood.foodNutrients.filter((elt) => {
                   return elt.nutrientName == "Fiber, total dietary"
               })[0] ?? {value:0}).value * 1000)
-            const zinc = Math.floor((fdcResponse.foods[0].foodNutrients.filter((elt) => {
+            const zinc = Math.floor((bestMatchFood.foodNutrients.filter((elt) => {
                   return elt.nutrientName == "Zinc, Zn"
               })[0] ?? {value:0}).value * 1000)
-            const density = await getDensity(ingredientId, fdcResponse.foods[0].fdcId)
+            const density = await getDensity(ingredientId, bestMatchFood.fdcId)
             await pool.query(`UPDATE ${test_}ingredient SET \
               fdc_id = $1, \
               energy = $3, \
@@ -54,7 +58,7 @@ export async function addFoodData (ingredientId: number, force:boolean = false):
               zinc = $11,\
               density = $12,\
               sodium = $13\
-              WHERE ingredient_id = $2`, [fdcResponse.foods[0].fdcId, ingredientId, energy, protein, lipid, carbohydrates, iron, magnesium, calcium, fiber, zinc, density, sodium])
+              WHERE ingredient_id = $2`, [bestMatchFood.fdcId, ingredientId, energy, protein, lipid, carbohydrates, iron, magnesium, calcium, fiber, zinc, density, sodium])
             const confidence = (fdcResponse.query === 'strict')
             if (confidence) {
               await pool.query(`UPDATE ${test_}ingredient SET high_confidence = TRUE WHERE ingredient_id = $1`, [ingredientId])
@@ -88,15 +92,15 @@ export async function getFoodData (name: string): Promise<any> {
     const dataTypes = ['Foundation','Survey (FNDDS)', 'SR Legacy']
   
     for (const query of [`+${name}`.replace(/ /, ' +').replace(/'s?/, ""), name]) {
-      for (const dataType of dataTypes) {
+      //for (const dataType of dataTypes) {
         if (response.status === 'Looking for ID') {
           const body = {
             query,
-            dataType: [
-              dataType
-            ],
+            dataType: 
+              dataTypes
+            ,
             pageSize: 1,
-            pageNumber: 1
+            pageNumber: 1,
           }
           const request = {
             headers: {
@@ -108,10 +112,10 @@ export async function getFoodData (name: string): Promise<any> {
           }
           const url = 'https://api.nal.usda.gov/fdc/v1/foods/search'
           await fetch(url, request).then(async (res) => { return await res.json() }).then((res) => {
-            logger.log({ level: 'info', message: `Found id for ${name} in ${dataType}, ${response.query}: ${res.foods[0].fdcId}` })
+            logger.log({ level: 'info', message: `Found id for ${name}, ${response.query}: ${res.foods[0].fdcId}` })
             response = res
           }).catch((e: any) => {
-            response.error += `Could not find ID in ${dataType}\n`
+            response.error += `Could not find ID\n`
           })
           if (query === name) {
             response.query = 'loose'
@@ -119,7 +123,7 @@ export async function getFoodData (name: string): Promise<any> {
             response.query = 'strict'
           }
         }
-      }
+      //}
     }
     return response
   }

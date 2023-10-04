@@ -62,7 +62,7 @@ if (process.env.DB_ENV == 'test') {
     
         test('getFoodData', async () => {
             let breadId = await getFoodData('bread')
-            expect(breadId.foods[0].fdcId).toEqual(325871)
+            expect(breadId.foods[0].fdcId).toEqual(2343330)
             let noId = await getFoodData('noID')
             expect(noId).toHaveProperty('error')
         })
