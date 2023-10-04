@@ -135,8 +135,21 @@ export async function getDensity (ingredient_id:number, fdc_id:number):Promise<s
             },
             method: 'GET',
         }
-        const response = await fetch(url, request)
-          .then((response) => {return response.json()})
+        
+        const timeOut:Promise<Response> =  new Promise((_, reject) => // timeout after 10 seconds 
+        setTimeout(() => reject(new Error("timed out")), 5000) )
+
+        const response = await Promise.race<Response>([
+          fetch(url, request),
+          timeOut
+        ])
+          .then((response) => {
+            if (response.status === 200) {
+              return response.json()
+            } else {
+              throw Error('Request to FDC failed')
+            }
+          })
           .catch((err) => {
             logger.log({
               level: 'info',
