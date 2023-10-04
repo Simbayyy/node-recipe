@@ -79,7 +79,7 @@ async function add_user_recipe_table() {
             id SERIAL NOT NULL PRIMARY KEY,\
             recipe_id INT,\
             user_id INT,\
-            CONSTRAINT fk_recipe FOREIGN KEY(recipe_id) REFERENCES recipe(recipe_id),\
+            CONSTRAINT fk_recipe FOREIGN KEY(recipe_id) REFERENCES recipe(recipe_id)\
             );")
     }
     catch (err) {
