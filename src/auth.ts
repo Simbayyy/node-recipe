@@ -64,7 +64,7 @@ authRouter.post('/logout', cors(), function (req, res, next) {
   req.logout(function (err) {
     if (err !== null) { next(err); return }
     logger.log({ level: 'info', message: `Successfully logged out ${JSON.stringify(req.user ?? {})}` })
-    res.json({ success: true })
+    res.status(200).json({ success: true })
   })
 })
 

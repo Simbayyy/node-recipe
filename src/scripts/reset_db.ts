@@ -8,7 +8,7 @@ logger.log({
 reset_db()
 
 export async function reset_db() {
-    await pool.query("DROP TABLE IF EXISTS recipe, ingredient, recipe_ingredient, recipe_time")
+    await pool.query("DROP TABLE IF EXISTS recipe, ingredient, recipe_ingredient, user_recipe")
     await pool.query("CREATE TABLE recipe (\
         recipe_id SERIAL NOT NULL PRIMARY KEY,\
         name VARCHAR(500),\
@@ -49,5 +49,11 @@ export async function reset_db() {
         CONSTRAINT fk_recipe FOREIGN KEY(recipe_id) REFERENCES recipe(recipe_id),\
         CONSTRAINT fk_ingredient FOREIGN KEY(ingredient_id) REFERENCES ingredient(ingredient_id)\
         );")
-    return 'done'
+    await pool.query("CREATE TABLE user_recipe (\
+        id SERIAL NOT NULL PRIMARY KEY,\
+        recipe_id INT,\
+        user_id INT,\
+        CONSTRAINT fk_recipe FOREIGN KEY(recipe_id) REFERENCES recipe(recipe_id)\
+        );")
+        return 'done'
 }
