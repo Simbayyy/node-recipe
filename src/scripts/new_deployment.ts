@@ -81,7 +81,8 @@ async function add_user_recipe_table() {
             user_id INT,\
             CONSTRAINT fk_recipe FOREIGN KEY(recipe_id) REFERENCES recipe(recipe_id)\
             );")
-    }
+            return `added`
+        }
     catch (err) {
         return `not added: ${err}`
     }
