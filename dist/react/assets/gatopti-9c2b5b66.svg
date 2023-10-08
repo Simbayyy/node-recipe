@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="110mm" height="110mm" version="1.1" viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
+ <path d="m92.206 24.026c-27.34 2.7312-54.682 5.4391-82.01 8.2871-4.5435 0.94865-7.5746 5.865-6.8906 10.363 0.026796 9.384-0.1007 18.771 0.16406 28.152 0.77085 4.3791 5.2057 7.5032 9.5508 7.3281 26.576 2.6274 53.149 5.2964 79.734 7.8242 3.5398-0.09105 6.458-2.4705 8.7852-4.9199 3.8419-3.8764 5.6537-9.5139 5.1761-14.913-0.0249-9.1727 0.17286-18.353-0.18696-27.52-0.88694-5.5394-4.7214-10.22-9.3288-13.215-1.4951-0.90051-3.2353-1.4687-4.9944-1.3872z" color="#000000" fill="#fd7e14" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round" style="paint-order:markers stroke fill"/>
+ <path d="m92.544 32.844-80.415 8.0663v28.288l80.511 7.9785c3.4874-2.5552 5.2125-5.3062 5.2269-8.0288-1e-3 -0.0433-3e-3 -0.0867-5e-3 -0.12995h0.0555v-28.107c-9.9e-4 -2.7534-1.8206-5.4847-5.3727-8.0663z" fill="none" stop-color="#000000" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="6" style="paint-order:markers stroke fill"/>
+ <g fill-rule="evenodd">
+  <path d="m92.245 40.91v36.216l0.39433 0.0505c3.4874-2.5552 5.2126-5.3064 5.227-8.0289-1e-3 -0.0433-3e-3 -0.0867-5e-3 -0.12995h0.0555v-28.107z" fill="#f60" stop-color="#000000" style="paint-order:markers stroke fill"/>
+  <path d="m92.544 32.844-80.415 8.0661 69.412 13.594c10.629-3.9544 16.36-8.7114 16.376-13.594-9.9e-4 -2.7534-1.8206-5.4847-5.3727-8.0663z" fill="#5c2000" stop-color="#000000" style="paint-order:markers stroke fill"/>
+  <rect transform="matrix(.99513 .098617 0 1 0 0)" x="12.188" y="39.708" width="80.905" height="28.288" ry="0" fill="#febc85" stop-color="#000000" stroke-width="0" style="paint-order:markers stroke fill"/>
+  <rect transform="matrix(.99513 .098617 0 1 0 0)" x="12.78" y="43.001" width="24.019" height="4.5257" ry="2.2628" fill="#fd7e14" stop-color="#000000" style="paint-order:markers stroke fill"/>
+  <rect transform="matrix(.99513 .098617 0 1 0 0)" x="12.78" y="50.939" width="71.265" height="4.5257" ry="2.2628" fill="#2d5016" stop-color="#000000" style="paint-order:markers stroke fill"/>
+  <rect transform="matrix(.99513 .098617 0 1 0 0)" x="12.78" y="58.876" width="46.822" height="4.5257" ry="2.2628" fill="#800000" stop-color="#000000" style="paint-order:markers stroke fill"/>
+ </g>
+</svg>
