@@ -116,7 +116,7 @@ export async function insertRecipeSchema (recipe: RecipeSchema, userId: number |
   } catch (e: any) {
     logger.log({
       level: 'error',
-      message: `Failed with insertion of recipe from ${recipe.url}\nError message is ${e}`
+      message: `Failed with insertion of recipe ${recipe.name} from ${recipe.url}\nError message is ${e}`
     })
     return undefined
   }
