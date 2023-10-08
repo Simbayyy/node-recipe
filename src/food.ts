@@ -11,8 +11,9 @@ export async function addFoodData (ingredientId: number, force:boolean = false):
         const fdcResponse = await getFoodData(nameEn)
         if (!('error' in fdcResponse)){
           try {
+            const rawName = `${nameEn}, raw`
             const bestMatchFood = fdcResponse.foods.reduce((a,b) => {
-              return levenshtein(a.description.toLowerCase(), nameEn) < levenshtein(b.description.toLowerCase(), nameEn) ? a : b
+              return levenshtein(a.description.toLowerCase(), rawName) < levenshtein(b.description.toLowerCase(), rawName) ? a : b
             })
             logger.log({level:"info", message:`Best match for ${nameEn} is ${bestMatchFood.description}, with ID ${bestMatchFood.fdcId} rather than ${fdcResponse.foods[0].fdcId} for ${fdcResponse.foods[0].description}`})
             const energy = Math.floor((bestMatchFood.foodNutrients.filter((elt) => {
