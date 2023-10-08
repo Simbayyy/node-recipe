@@ -11,9 +11,11 @@ export async function addFoodData (ingredientId: number, force:boolean = false):
         const fdcResponse = await getFoodData(nameEn)
         if (!('error' in fdcResponse)){
           try {
+            const rawName = `${nameEn}, raw`
             const bestMatchFood = fdcResponse.foods.reduce((a,b) => {
-              return levenshtein(a.description, nameEn) < levenshtein(b.description, nameEn) ? a : b
+              return levenshtein(a.description.toLowerCase(), rawName) < levenshtein(b.description.toLowerCase(), rawName) ? a : b
             })
+            logger.log({level:"info", message:`Best match for ${nameEn} is ${bestMatchFood.description}, with ID ${bestMatchFood.fdcId} rather than ${fdcResponse.foods[0].fdcId} for ${fdcResponse.foods[0].description}`})
             const energy = Math.floor((bestMatchFood.foodNutrients.filter((elt) => {
                   return (elt.nutrientName == "Energy" || elt.nutrientName == "Energy (Atwater General Factors)" || elt.nutrientName ==  "Energy (Atwater Specific Factors)") && 'unitName' in elt && elt.unitName.match(/kcal/i)
               })[0] ?? {value:0}).value * 1000)
@@ -65,7 +67,7 @@ export async function addFoodData (ingredientId: number, force:boolean = false):
             }
             logger.log({
               level: 'info',
-              message: `Found and added fdc data for ingredient ${nameEn}, ${confidence ? 'high' : 'low'} confidence`
+              message: `Found and added fdc data at ID ${bestMatchFood.fdcId} for ingredient ${nameEn}, ${confidence ? 'high' : 'low'} confidence`
             })
           } catch (e: any) {
             logger.log({
@@ -99,7 +101,7 @@ export async function getFoodData (name: string): Promise<any> {
             dataType: 
               dataTypes
             ,
-            pageSize: 1,
+            pageSize: 20,
             pageNumber: 1,
           }
           const request = {
@@ -177,6 +179,7 @@ export async function getDensity (ingredient_id:number, fdc_id:number):Promise<s
 }
 
 export const usualVolumes = {
+  //in gram per unit
     cup:240,
     teaspoon:15,
     tablespoon:5,
