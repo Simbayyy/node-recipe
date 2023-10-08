@@ -101,7 +101,7 @@ export async function getFoodData (name: string): Promise<any> {
             dataType: 
               dataTypes
             ,
-            pageSize: 4,
+            pageSize: 20,
             pageNumber: 1,
           }
           const request = {
