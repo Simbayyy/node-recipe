@@ -13,7 +13,8 @@ export async function storeEditedRecipe(newRecipe: RecipeSchema, userId: number)
         if (!('error' in oldRecipe)) {
             if (!areSameIngredients(oldRecipe.recipeIngredient as Ingredient[],newRecipe.recipeIngredient as Ingredient[])) {
                 const addRecipeId = await insertRecipeSchema(newRecipe, userId)
-                const removeOldUserRecipeLink = await removeRecipeUserLink(oldRecipe.id || null, userId)
+                const removeOldUserRecipeLink = await removeRecipeUserLink(newRecipe.id || null, userId)
+                logger.info(`Stored recipe ${addRecipeId} as an edited copy of recipe ${newRecipe.id }`)
                 return addRecipeId
             } else {
                 throw Error(`No difference between the recipes' ingredients`)
@@ -23,7 +24,7 @@ export async function storeEditedRecipe(newRecipe: RecipeSchema, userId: number)
         }
         
     } catch (err) {
-        logger.info(`Could not store the edited recipe.\nError:${err}`)
+        logger.error(`Could not store the edited recipe.\nError:${err}`)
     }
     return undefined
 }
