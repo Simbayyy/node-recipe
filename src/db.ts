@@ -34,8 +34,8 @@ export async function insertRecipeSchema (recipe: RecipeSchema, userId: number |
     if (getSameRecipe.rows.length === 0) {
       // Attempts to insert recipe
       const response = await pool.query(`INSERT INTO
-          ${test_}recipe(name,url,prepTime,cookTime,totalTime,recipeYield,recipeInstructions,recipeCategory,recipeCuisine)
-          VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)
+          ${test_}recipe(name,url,prepTime,cookTime,totalTime,recipeYield,recipeInstructions,recipeCategory,recipeCuisine,original_id)
+          VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
           RETURNING recipe_id`, [
         recipe.name,
         recipe.url,
@@ -45,7 +45,8 @@ export async function insertRecipeSchema (recipe: RecipeSchema, userId: number |
         recipe.recipeYield ?? '',
         recipe.recipeInstructions ?? '',
         recipe.recipeCategory ?? '',
-        recipe.recipeCuisine ?? ''
+        recipe.recipeCuisine ?? '',
+        recipe.originalId ?? null,
       ])
       const newRecipeId = response.rows[0].recipe_id
       logger.log({
@@ -127,6 +128,16 @@ async function insertRecipeUserLink(newRecipeId:number | null ,userId:number) {
     await pool.query(`INSERT INTO ${test_}user_recipe(recipe_id,user_id)
       VALUES($1,$2)`, [
         newRecipeId,
+        userId
+      ])
+  }
+}
+export async function removeRecipeUserLink(oldRecipeId:number | null ,userId:number) {
+  if (oldRecipeId !== null) {
+    await pool.query(`DELETE FROM ${test_}user_recipe
+      WHERE recipe_id = $1
+      AND user_id = $2`, [
+        oldRecipeId,
         userId
       ])
   }
@@ -254,7 +265,8 @@ export async function selectRecipe (recipeId: number, userId:number | null = nul
         recipeCategory: result.rows[0].recipecategory,
         recipeYield: result.rows[0].recipeyield,
         recipeIngredient: ingredientsId.rows,
-        id: recipeId
+        id: recipeId,
+        originalId: result.rows[0].original_id
       }
       return sanitizeRecipeSchema(recipe)
     } else {
