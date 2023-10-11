@@ -6,7 +6,8 @@ import path from 'path'
 import { authRouter } from './auth'
 import session from 'express-session'
 import passport from 'passport'
-import memorystore from 'memorystore'
+import pgstore from 'connect-pg-simple'
+import { pool } from './db'
 
 // Load environment variables
 dotenv.config({ path: process.env.NODE_ENV === 'production' ? '.env' : '.env.development.local' })
@@ -14,16 +15,16 @@ dotenv.config({ path: process.env.NODE_ENV === 'production' ? '.env' : '.env.dev
 export const app = express()
 const port = 3000
 
-const Store = memorystore(session)
+const Store = pgstore(session)
 
 app.use(express.json())
 app.use(session({
   secret: process.env.SESSION_SECRET ?? 'no_key',
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 24 * 60 * 60 * 1000 }, // 30 days
+  cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 }, // 30 days
   store: new Store({
-    checkPeriod: 24 * 60 * 60 * 1000
+    pool:pool,
   })
 }))
 app.use(passport.initialize())
