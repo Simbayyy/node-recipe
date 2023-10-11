@@ -89,7 +89,7 @@ export async function insertRecipeSchema (recipe: RecipeSchema, userId: number |
         [
           newRecipeId,
           ingredientId,
-          Math.floor(ingredient.amount * 100),
+          Math.floor(ingredient.amount),
           ingredient.unit
         ])
         logger.log({

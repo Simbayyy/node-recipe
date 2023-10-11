@@ -106,7 +106,7 @@ function sanitizeIngredient (parsedIngredient: Ingredient): Ingredient {
         .trim()
         .replace(/^[dsl]'/g, '')
         .trim(),
-      amount: parsedIngredient.amount,
+      amount: parsedIngredient.amount * 100,
       unit: parsedIngredient.unit
         .replace(/cuill(?:e|è)re?s? à café/, 'cc')
         .replace(/cuill(?:e|è)re?s? à soupe/, 'cs')
