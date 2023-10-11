@@ -112,12 +112,9 @@ export function areSameIngredients (ingredients1: Ingredient[], ingredients2: In
           && ingredient.unit === ingredient2.unit) {
             return true
       } else {
-        console.log(ingredient)
-        console.log(ingredient2)
         return false
       }
     })
-    console.log(`Ingredients are the same: ${!sameArray.some((isSame) => isSame === false)}`)
     return !sameArray.some((isSame) => isSame === false)
   } else {
     return false
