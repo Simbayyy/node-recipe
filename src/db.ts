@@ -31,7 +31,7 @@ export async function insertRecipeSchema (recipe: RecipeSchema, userId: number |
       WHERE url=$1`, [
         recipe.url
       ])
-    if (getSameRecipe.rows.length === 0) {
+    if (getSameRecipe.rows.length === 0 || recipe.originalId !== undefined) {
       // Attempts to insert recipe
       const response = await pool.query(`INSERT INTO
           ${test_}recipe(name,url,prepTime,cookTime,totalTime,recipeYield,recipeInstructions,recipeCategory,recipeCuisine,original_id)

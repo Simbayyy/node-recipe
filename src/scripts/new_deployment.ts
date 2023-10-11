@@ -18,7 +18,23 @@ async function add_original_id_to_recipe() {
     }
 }
 
+async function remove_unique_from_recipe_url() {
+    try {
+        const exists = await pool.query("ALTER TABLE recipe \
+        DROP CONSTRAINT recipe_url_key;")
+        return 'removed'
+    }
+    catch (err) {
+        return `not removed: ${err}`
+    }
+}
+
 add_original_id_to_recipe().then((res) => logger.log({
     level:'info',
     message:`original_id column ${res}`
+}))
+
+remove_unique_from_recipe_url().then((res) => logger.log({
+    level:'info',
+    message:`Unique url ${res}`
 }))
