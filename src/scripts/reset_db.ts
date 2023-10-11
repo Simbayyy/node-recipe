@@ -19,7 +19,8 @@ export async function reset_db() {
         recipeYield VARCHAR(500),\
         recipeInstructions VARCHAR(1000),\
         recipeCategory VARCHAR(500),\
-        recipeCuisine VARCHAR(500)\
+        recipeCuisine VARCHAR(500),\
+        original_id INT\
         );")
     await pool.query("CREATE TABLE ingredient (\
         ingredient_id SERIAL NOT NULL PRIMARY KEY,\
