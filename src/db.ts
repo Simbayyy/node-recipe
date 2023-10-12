@@ -140,6 +140,7 @@ export async function removeRecipeUserLink(oldRecipeId:number | null ,userId:num
         oldRecipeId,
         userId
       ])
+    logger.info(`Successfully delinked user ${userId} and recipe ${oldRecipeId}`)
   }
 }
 
@@ -240,6 +241,10 @@ export async function selectRecipe (recipeId: number, userId:number | null = nul
           return {error:`Could not fetch recipe`}
         }
       }
+    }
+    if (usersLinkedToRecipe.rows.length === 0) {
+      logger.error(`No one is allowed to access recipe ${recipeId}`)
+      return {error:`Could not fetch recipe`}
     }
 
     const query = `SELECT * \

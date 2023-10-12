@@ -20,3 +20,4 @@ router.get('/check-admin', cors(), isAdmin, (req: any, res: any) => {
 })
 
 router.get('/ingredients', cors(), isAdmin, views.getAllIngredients as RequestHandler)
+router.post('/edit', cors(), views.editRecipe as RequestHandler)

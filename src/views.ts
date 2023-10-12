@@ -3,6 +3,7 @@ import { insertRecipe, insertRecipeSchema, pool, selectIngredient, selectRecipe,
 import { sanitizeRecipe, sanitizeRecipeSchema } from './functions'
 import { type Recipe, type RecipeSchema, isRecipe } from './types'
 import { parseRecipeFromPage } from './recipe_parser'
+import { storeEditedRecipe } from './recipe_edition'
 
 export function home (_: any, res: any): void {
   res.render('home.hbs', { message: 'This was compiled on-site!' })
@@ -126,3 +127,34 @@ export async function parseRecipe (req: any, res: any): Promise<void> {
     res.status(500).json({ error: 'no' })
   }
 }
+
+export async function editRecipe(req:any, res:any):Promise<void> {
+  let userId = null
+  try {
+    logger.info(`User ${req.user} is attempting to edit a recipe`)
+    if ('user' in req && req.user !== undefined && 'id' in req.user && req.user.id !== undefined) {
+      userId = req.user.id
+    }
+    if (userId) {
+      // Eventually perform checks on the recipe
+      
+      // Edit the recipe
+      let newRecipe = req.body.recipe
+      const newRecipeId = await storeEditedRecipe(newRecipe, userId)
+      if (newRecipeId !== undefined) {
+        const recipe = await selectRecipe(newRecipeId, userId)
+        if ('error' in recipe) {
+          throw Error('Access not allowed to user')
+        }
+        res.status(200).json(recipe)  
+      } else {
+        throw Error('Could not store the recipe')
+      }
+    } else {
+      throw Error('User is not logged in')
+    }
+  } catch (err) {
+    logger.error(`Could not edit recipe: ${err}`)
+    res.status(500).json({error:"noedit"})  
+  }
+} 

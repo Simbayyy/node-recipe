@@ -8,7 +8,7 @@ export async function storeEditedRecipe(newRecipe: RecipeSchema, userId: number)
         if (!('id' in newRecipe && newRecipe.id !== undefined)) {
             throw TypeError(`Recipe has no id`)
         }
-        const oldRecipe = await selectRecipe(newRecipe.id)
+        const oldRecipe = await selectRecipe(newRecipe.id, userId)
         newRecipe.originalId = newRecipe.id
         if (!('error' in oldRecipe)) {
             if (!areSameIngredients(oldRecipe.recipeIngredient as Ingredient[],newRecipe.recipeIngredient as Ingredient[])) {
