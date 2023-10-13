@@ -100,10 +100,13 @@ function areIngredients (ingredients: Ingredient[] | object[]): boolean {
   })
   return allingredients
 }
+export function isIngredientNonNull (elt) {
+  return elt.amount !== 0 && elt.name !== ""
+}
 
 export function areSameIngredients (ingredients1: Ingredient[], ingredients2: Ingredient[]) {
-  const ingredients1Order = ingredients1.sort(sortIngredients)
-  const ingredients2Order = ingredients2.sort(sortIngredients)
+  const ingredients1Order = ingredients1.sort(sortIngredients).filter(isIngredientNonNull)
+  const ingredients2Order = ingredients2.sort(sortIngredients).filter(isIngredientNonNull)
   if (ingredients1Order.length === ingredients2Order.length) {
     const sameArray = ingredients1Order.map((ingredient, index) => {
       const ingredient2 = ingredients2Order[index]

@@ -1,6 +1,6 @@
 import { insertRecipeSchema, removeRecipeUserLink, selectRecipe } from "./db";
 import { logger } from "./logger";
-import { Ingredient, RecipeSchema, areSameIngredients } from "./types";
+import { Ingredient, RecipeSchema, areSameIngredients, isIngredientNonNull } from "./types";
 
 
 export async function storeEditedRecipe(newRecipe: RecipeSchema, userId: number) {
@@ -8,6 +8,7 @@ export async function storeEditedRecipe(newRecipe: RecipeSchema, userId: number)
         if (!('id' in newRecipe && newRecipe.id !== undefined)) {
             throw TypeError(`Recipe has no id`)
         }
+        newRecipe.recipeIngredient = (newRecipe.recipeIngredient as Ingredient[]).filter(isIngredientNonNull)
         const oldRecipe = await selectRecipe(newRecipe.id, userId)
         newRecipe.originalId = newRecipe.id
         if (!('error' in oldRecipe)) {
