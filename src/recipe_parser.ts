@@ -89,12 +89,13 @@ export function parseRecipeIngredient (recipeIngredient: string[]): Ingredient[]
         }
       }
       parsedIngredient = sanitizeIngredient(parsedIngredient)
+      parsedIngredient.amount = parsedIngredient.amount * 100
     }
     return parsedIngredient
   })
 }
 
-function sanitizeIngredient (parsedIngredient: Ingredient): Ingredient {
+export function sanitizeIngredient (parsedIngredient: Ingredient): Ingredient {
   try {
     const newIngredient: Ingredient = {
       name: he.decode(String(parsedIngredient.name))
@@ -106,7 +107,7 @@ function sanitizeIngredient (parsedIngredient: Ingredient): Ingredient {
         .trim()
         .replace(/^[dsl]'/g, '')
         .trim(),
-      amount: parsedIngredient.amount * 100,
+      amount: parsedIngredient.amount,
       unit: parsedIngredient.unit
         .replace(/cuill(?:e|è)re?s? à café/, 'cc')
         .replace(/cuill(?:e|è)re?s? à soupe/, 'cs')
