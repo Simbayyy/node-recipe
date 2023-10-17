@@ -91,8 +91,7 @@ authRouter.post('/password', cors(), (req: any, res: any, next: any) => {
 },
 (err: any, req: any, res: any, next: any) => {
   // This middleware handles errors that occur during login
-  console.error('Login error:', err)
-  logger.log({ level: 'error', message: 'error in login.' })
+  logger.log({ level: 'error', message: `error in login: ${err}.` })
   res.status(500).json({ success: false, code: 'error', error: 'Something went wrong during login' })
 }
 )
@@ -132,8 +131,7 @@ authRouter.post('/signup', cors(), function (req: any, res: any, next): any {
 },
 (err: any, req: any, res: any, next: any) => {
   // This middleware handles errors that occur during signup
-  console.error('Signup error:', err)
-  logger.log({ level: 'error', message: 'error in signup.' })
+  logger.log({ level: 'error', message: `error in signup: ${err}.` })
   res.status(500).json({ success: false, code: err.code })
 })
 
