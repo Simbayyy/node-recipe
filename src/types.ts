@@ -1,3 +1,5 @@
+import { sortIngredients } from "./functions"
+
 export interface Time {
   time: number
   unit: string
@@ -51,6 +53,7 @@ export interface RecipeSchema {
   url?: string
   recipeIngredient?: string[] | Ingredient[]
   id?: number
+  originalId?:number
 }
 
 export const RecipeSchemaKeys = ['name',
@@ -96,4 +99,27 @@ function areIngredients (ingredients: Ingredient[] | object[]): boolean {
     if (allingredients) { allingredients = isIngredient(ingredient) }
   })
   return allingredients
+}
+export function isIngredientNonNull (elt) {
+  return elt.amount !== 0 && elt.name !== ""
+}
+
+export function areSameIngredients (ingredients1: Ingredient[], ingredients2: Ingredient[]) {
+  const ingredients1Order = ingredients1.sort(sortIngredients).filter(isIngredientNonNull)
+  const ingredients2Order = ingredients2.sort(sortIngredients).filter(isIngredientNonNull)
+  if (ingredients1Order.length === ingredients2Order.length) {
+    const sameArray = ingredients1Order.map((ingredient, index) => {
+      const ingredient2 = ingredients2Order[index]
+      if (ingredient.name === ingredient2.name
+          && ingredient.amount === ingredient2.amount
+          && ingredient.unit === ingredient2.unit) {
+            return true
+      } else {
+        return false
+      }
+    })
+    return !sameArray.some((isSame) => isSame === false)
+  } else {
+    return false
+  }
 }

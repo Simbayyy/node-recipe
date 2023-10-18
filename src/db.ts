@@ -31,11 +31,11 @@ export async function insertRecipeSchema (recipe: RecipeSchema, userId: number |
       WHERE url=$1`, [
         recipe.url
       ])
-    if (getSameRecipe.rows.length === 0) {
+    if (getSameRecipe.rows.length === 0 || recipe.originalId !== undefined || recipe.url === 'custom') {
       // Attempts to insert recipe
       const response = await pool.query(`INSERT INTO
-          ${test_}recipe(name,url,prepTime,cookTime,totalTime,recipeYield,recipeInstructions,recipeCategory,recipeCuisine)
-          VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)
+          ${test_}recipe(name,url,prepTime,cookTime,totalTime,recipeYield,recipeInstructions,recipeCategory,recipeCuisine,original_id)
+          VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
           RETURNING recipe_id`, [
         recipe.name,
         recipe.url,
@@ -45,7 +45,8 @@ export async function insertRecipeSchema (recipe: RecipeSchema, userId: number |
         recipe.recipeYield ?? '',
         recipe.recipeInstructions ?? '',
         recipe.recipeCategory ?? '',
-        recipe.recipeCuisine ?? ''
+        recipe.recipeCuisine ?? '',
+        recipe.originalId ?? null,
       ])
       const newRecipeId = response.rows[0].recipe_id
       logger.log({
@@ -68,36 +69,40 @@ export async function insertRecipeSchema (recipe: RecipeSchema, userId: number |
     })
     
     async function insertIngredient (ingredient: Ingredient, index: number, array?: Ingredient[]): Promise<number> {
-      const checkIngredient = await pool.query(`SELECT ingredient_id \
-      FROM ${test_}ingredient \
-      WHERE name = $1`, [ingredient.name])
-      let ingredientId: number
-      if (checkIngredient.rows.length === 0) {
-        const insertIngredient = await pool.query(`INSERT INTO \
-        ${test_}ingredient(name,short_name) \
-        VALUES($1,$2) \
-        RETURNING ingredient_id`, [ingredient.name,ingredient.short_name ?? "erreur"])
-        ingredientId = insertIngredient.rows[0].ingredient_id
-      } else {
-        ingredientId = checkIngredient.rows[0].ingredient_id
-      }
-      await pool.query(
-        `INSERT INTO \
-        ${test_}recipe_ingredient(recipe_id,ingredient_id,amount,unit) \
-        VALUES($1, $2, $3, $4);`,
-        [
-          newRecipeId,
-          ingredientId,
-          Math.floor(ingredient.amount * 100),
-          ingredient.unit
-        ])
-        logger.log({
-          level: 'info',
-          message: `Successfully inserted ingredient ${index} in the database with id ${ingredientId}`
-        })
-        const log = await fillIngredientData(ingredientId, ingredient.short_name)
-        logger.log({level:"info",message:log})
-        return ingredientId
+        try {
+        const checkIngredient = await pool.query(`SELECT ingredient_id \
+        FROM ${test_}ingredient \
+        WHERE name = $1`, [ingredient.name])
+        let ingredientId: number
+        if (checkIngredient.rows.length === 0) {
+          const insertIngredient = await pool.query(`INSERT INTO \
+          ${test_}ingredient(name,short_name) \
+          VALUES($1,$2) \
+          RETURNING ingredient_id`, [ingredient.name,ingredient.short_name ?? "erreur"])
+          ingredientId = insertIngredient.rows[0].ingredient_id
+        } else {
+          ingredientId = checkIngredient.rows[0].ingredient_id
+        }
+        await pool.query(
+          `INSERT INTO \
+          ${test_}recipe_ingredient(recipe_id,ingredient_id,amount,unit) \
+          VALUES($1, $2, $3, $4);`,
+          [
+            newRecipeId,
+            ingredientId,
+            Math.floor(ingredient.amount),
+            ingredient.unit
+          ])
+          logger.log({
+            level: 'info',
+            message: `Successfully inserted ingredient ${index} in the database with id ${ingredientId}`
+          })
+          const log = await fillIngredientData(ingredientId, ingredient.short_name)
+          logger.log({level:"info",message:log})
+          return ingredientId
+        } catch (err) {
+          throw Error(`Error with ingredient ${index}, ${ingredient.name}, ${ingredient.short_name}`)
+        }
       }
       
       const ingredientsId = await Promise.all(ingredientsFirstPass.map(insertIngredient))
@@ -129,6 +134,17 @@ async function insertRecipeUserLink(newRecipeId:number | null ,userId:number) {
         newRecipeId,
         userId
       ])
+  }
+}
+export async function removeRecipeUserLink(oldRecipeId:number | null ,userId:number) {
+  if (oldRecipeId !== null) {
+    await pool.query(`DELETE FROM ${test_}user_recipe
+      WHERE recipe_id = $1
+      AND user_id = $2`, [
+        oldRecipeId,
+        userId
+      ])
+    logger.info(`Successfully delinked user ${userId} and recipe ${oldRecipeId}`)
   }
 }
 
@@ -230,6 +246,10 @@ export async function selectRecipe (recipeId: number, userId:number | null = nul
         }
       }
     }
+    if (usersLinkedToRecipe.rows.length === 0) {
+      logger.error(`No one is allowed to access recipe ${recipeId}`)
+      return {error:`Could not fetch recipe`}
+    }
 
     const query = `SELECT * \
             FROM ${process.env.DB_ENV === 'test' ? 'test_' : ''}recipe \
@@ -254,7 +274,8 @@ export async function selectRecipe (recipeId: number, userId:number | null = nul
         recipeCategory: result.rows[0].recipecategory,
         recipeYield: result.rows[0].recipeyield,
         recipeIngredient: ingredientsId.rows,
-        id: recipeId
+        id: recipeId,
+        originalId: result.rows[0].original_id
       }
       return sanitizeRecipeSchema(recipe)
     } else {
@@ -298,8 +319,8 @@ async function fillIngredientData(ingredientId: number, short_name: string | und
     const sameShortNameIngredients = await pool.query(`SELECT * \
       FROM ${test_}ingredient \
       WHERE short_name = $1 \
-      ORDER BY ingredient_id;` , [short_name])  
-    if (sameShortNameIngredients.rows.length > 1 || (sameShortNameIngredients.rows[0].name_en != undefined && sameShortNameIngredients.rows[0].fdc_id != undefined)) {
+      ORDER BY ingredient_id;` , [short_name])
+    if (sameShortNameIngredients.rows.length > 1 || (sameShortNameIngredients.rows.length == 1 && sameShortNameIngredients.rows[0].name_en != undefined && sameShortNameIngredients.rows[0].fdc_id != undefined)) {
       const refIngredient = sameShortNameIngredients.rows[0]
       await pool.query(`UPDATE ${test_}ingredient \
         SET fdc_id = $1, name_en = $2, high_confidence = $3 \

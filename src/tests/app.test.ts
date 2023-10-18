@@ -7,6 +7,7 @@ import { lintIngredient, sanitizeRecipe } from '../functions'
 import { dummyIngredients, dummyIngredientsResponse, dummyLDJSON, dummyNotRecipe, dummyPage, dummyRecipe, dummyRecipe2, dummyResponse, dummyResponseIngredient } from './dummy_values'
 import { parseRecipeFromPage, parseRecipeIngredient, parseRecipeSchema, shortenName } from '../recipe_parser'
 import { getFoodData } from '../food'
+import { storeEditedRecipe } from '../recipe_edition'
 
 if (process.env.DB_ENV == 'test') {
     describe("Database tests", () => {
@@ -15,7 +16,7 @@ if (process.env.DB_ENV == 'test') {
             await pool.query("CREATE TABLE test_recipe (\
                 recipe_id SERIAL NOT NULL PRIMARY KEY,\
                 name VARCHAR(500),\
-                url VARCHAR(500) UNIQUE,\
+                url VARCHAR(500),\
                 prepTime VARCHAR(20),\
                 cookTime VARCHAR(20),\
                 totalTime VARCHAR(20),\
@@ -23,7 +24,7 @@ if (process.env.DB_ENV == 'test') {
                 recipeCategory VARCHAR(500),\
                 recipeInstructions VARCHAR(1000),\
                 recipeCuisine VARCHAR(500),\
-                user_id INT DEFAULT 0\
+                original_id INT\
                 );")
             await pool.query("CREATE TABLE test_ingredient (\
                 ingredient_id SERIAL NOT NULL PRIMARY KEY,\
@@ -118,6 +119,28 @@ if (process.env.DB_ENV == 'test') {
                 {table_name: 'test_recipe_ingredient'},
             ]))
         })
+
+        test('Recipe edition', async () => {
+            let dummyRecipeWithId = {
+                ...dummyRecipe,
+                id:1
+            }
+            let editWithNoChange = await storeEditedRecipe(dummyRecipeWithId,0)
+            expect(editWithNoChange).toBe(undefined)
+            let dummyRecipeWithChange = {
+                ...dummyRecipe,
+                id:1,
+                recipeIngredient:[{
+                    name:'pain',
+                    amount:40000,
+                    unit:'g'
+                }]
+            }            
+            let editWithChange = await storeEditedRecipe(dummyRecipeWithChange,0)
+            expect(editWithChange).toBe(3)
+            let faultyRecipe = await storeEditedRecipe(dummyNotRecipe,0)
+            expect(faultyRecipe).toBe(undefined)
+        })
     })
 }
 
@@ -131,7 +154,7 @@ describe('Parsing functions', () => {
         expect(parseRecipeIngredient(dummyIngredients)).toStrictEqual(dummyIngredientsResponse)
         expect(parseRecipeIngredient(["1 tasse de lait(s) froid"]))
             .toStrictEqual([{
-                amount: 1,
+                amount: 100,
                 unit:'tasse',
                 name:"lait froid",
                 short_name:"lait"

@@ -1,0 +1,97 @@
+diff --git a/node_modules/connect-pg-simple/LICENSE b/node_modules/connect-pg-simple/LICENSE
+old mode 100644
+new mode 100755
+diff --git a/node_modules/connect-pg-simple/README.md b/node_modules/connect-pg-simple/README.md
+old mode 100644
+new mode 100755
+diff --git a/node_modules/connect-pg-simple/index.js b/node_modules/connect-pg-simple/index.js
+old mode 100644
+new mode 100755
+index 77bc13e..a1be609
+--- a/node_modules/connect-pg-simple/index.js
++++ b/node_modules/connect-pg-simple/index.js
+@@ -381,19 +381,73 @@ module.exports = function (session) {
+      * @param {SimpleErrorCallback} fn – a standard Node.js callback returning the parsed session object
+      * @access public
+      */
+-    set (sid, sess, fn) {
++    set(sid, sess, fn) {
+       this.#initPruneTimer();
+     
+       const expireTime = this.#getExpireTime(sess);
+-      const query = 'INSERT INTO ' + this.quotedTable() + ' (sess, expire, sid) SELECT $1, to_timestamp($2), $3 ON CONFLICT (sid) DO UPDATE SET sess=$1, expire=to_timestamp($2) RETURNING sid';
+     
+-      this.query(
+-        query,
+-        [sess, expireTime, sid],
+-        err => { fn && fn(err); }
+-      );
+-    }
++      const insertQuery = `
++        INSERT INTO ${this.quotedTable()} (sess, expire, sid)
++        VALUES ($1, to_timestamp($2), $3)`;
++    
++      const updateQuery = `
++        UPDATE ${this.quotedTable()}
++        SET sess = $1, expire = to_timestamp($2)
++        WHERE sid = $3`;
++    
++      const selectQuery = `
++        SELECT 1
++        FROM ${this.quotedTable()}
++        WHERE sid = $1`;
++    
++      // Start a transaction
++      this.query('BEGIN', (beginErr) => {
++        if (beginErr) {
++          fn && fn(beginErr);
++          return;
++        }
+     
++        // Check if the session ID already exists
++        this.query(selectQuery, [sid], (selectErr, selectResult) => {
++          if (selectErr) {
++            this.query('ROLLBACK', () => {
++              fn && fn(selectErr);
++            });
++            return;
++          }    
++          if (selectResult !== undefined) {
++            // If the session ID exists, update the data
++            this.query(updateQuery, [sess, expireTime, sid], (updateErr) => {
++              if (updateErr) {
++                this.query('ROLLBACK', () => {
++                  fn && fn(updateErr);
++                });
++                return;
++              }
++    
++              // Commit the transaction
++              this.query('COMMIT', (commitErr) => {
++                  fn && fn(commitErr);
++              });
++            });
++          } else {
++            // If the session ID doesn't exist, insert the data
++            this.query(insertQuery, [sess, expireTime, sid], (insertErr) => {
++              if (insertErr) {
++                this.query('ROLLBACK', () => {
++                  fn && fn(insertErr);
++                });
++              } else {
++                // Commit the transaction
++                this.query('COMMIT', (commitErr) => {
++                    fn && fn(commitErr);
++                });
++              }
++            });
++          }
++        });
++      });
++    }
+     /**
+      * Destroy the session associated with the given `sid`.
+      *
+diff --git a/node_modules/connect-pg-simple/table.sql b/node_modules/connect-pg-simple/table.sql
+old mode 100644
+new mode 100755

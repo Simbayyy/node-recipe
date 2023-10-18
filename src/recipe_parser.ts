@@ -89,12 +89,13 @@ export function parseRecipeIngredient (recipeIngredient: string[]): Ingredient[]
         }
       }
       parsedIngredient = sanitizeIngredient(parsedIngredient)
+      parsedIngredient.amount = parsedIngredient.amount * 100
     }
     return parsedIngredient
   })
 }
 
-function sanitizeIngredient (parsedIngredient: Ingredient): Ingredient {
+export function sanitizeIngredient (parsedIngredient: Ingredient): Ingredient {
   try {
     const newIngredient: Ingredient = {
       name: he.decode(String(parsedIngredient.name))

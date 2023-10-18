@@ -6,13 +6,13 @@ export const dummyRecipe = {
         {
             name: "pain",
             short_name: "pain",
-            amount: 100,
+            amount: 10000,
             unit: "g"
         },
         {
             name: "eau",
             short_name: "eau",
-            amount: 200,
+            amount: 20000,
             unit: "g"
         }
     ],
@@ -24,6 +24,7 @@ export const dummyResponse = {
     url:"http://macaroni",
     prepTime:"PT10M",
     cookTime:"",
+    originalId:null,
     totalTime:"",
     recipeIngredient: [
         {
@@ -159,25 +160,25 @@ export const dummyLDJSON = {
     "prepTime": "PT15M",
     "recipeIngredient": [
         {
-            "amount": 3.5,
+            "amount": 350,
             "name": "ripe bananas, smashed",
             "short_name": "ripe bananas, smashed",
             "unit": "",
         }, 
         {
-            "amount": 1,
+            "amount": 100,
             "name": "egg",
             "short_name": "egg",
             "unit": "",
         },
         {
-            "amount": 0.75,
+            "amount": 75,
             "name": "sugar",
             "short_name": "sugar",
             "unit": "cup",
     }    ,
         {
-            "amount": 2,
+            "amount": 200,
             "name": "brocolis",
             "short_name": "brocolis",
             "unit": "",
@@ -199,14 +200,14 @@ export const dummyIngredients = [
 ]
 
 export const dummyIngredientsResponse = [
-        [2.5,"morceaux", "riz"],
-        [3,"quartiers", "orange"],
-        [1.25,"tasse", "lait"],
-        [0.5, "", "pastèque"],
-        [2.4, "cl", "jus de papaye"],
+        [250,"morceaux", "riz"],
+        [300,"quartiers", "orange"],
+        [125,"tasse", "lait"],
+        [50, "", "pastèque"],
+        [240, "cl", "jus de papaye"],
         [0, "", "rien"],
-        [2.4,"","patates"],
-        [1.33, "", "verre"],
+        [240,"","patates"],
+        [133, "", "verre"],
     ].map((elt) => {
         return {
             amount:elt[0],
