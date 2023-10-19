@@ -109,8 +109,8 @@ export function sanitizeIngredient (parsedIngredient: Ingredient): Ingredient {
         .trim(),
       amount: parsedIngredient.amount,
       unit: parsedIngredient.unit
-        .replace(/cuill(?:e|è)re?s? à café/, 'cc')
-        .replace(/cuill(?:e|è)re?s? à soupe/, 'cs')
+        .replace(/(cuill(?:e|è)re?s?|c\.?) à café/, 'cc')
+        .replace(/(cuill(?:e|è)re?s?|c\.?) à soupe/, 'cs')
         .replace(/c\.à\.c\.?/, 'cc')
         .replace(/c\.à\.s\.?/, 'cs')
         .replace(/^gr(ammes?)?$/, 'g')
